@@ -15,41 +15,6 @@ module.exports = {
     skipAuthentication: process.env.SKIP_AUTH === "true",
   },
 
-  // ===== ANTI-AFK SETTINGS =====
-  antiAfk: {
-    enabled: process.env.ANTI_AFK_ENABLED !== "false",
-    interval: parseInt(process.env.ANTI_AFK_INTERVAL) || 45000, // 45 seconds
-    method: process.env.ANTI_AFK_METHOD || "verified_chat", // Server-verified method
-    fallbackToKeepalive: process.env.FALLBACK_ENABLED !== "false",
-
-    // Available methods (prioritizing server-verified approaches)
-    availableMethods: [
-      "verified_chat", // Most reliable - chat with server verification
-      "verified_command", // Very effective - commands with response validation
-      "player_action_verified", // Good - proper Bedrock player actions
-      "connection_heartbeat", // Basic - UDP socket maintenance
-      "gentle_movement_tracked", // Limited - movement with position tracking
-      "simple_presence", // Fallback - basic presence
-    ],
-
-    // Important notes about Bedrock server communication
-    notes: [
-      "Bedrock edition uses UDP protocol - packets may be dropped",
-      "Server verification ensures packets actually reach the server",
-      "Chat messages and commands provide the best verification",
-      "Movement packets are often ignored without manual interaction",
-      "Bot must be properly spawned for packets to be processed",
-    ],
-
-    // Verification settings
-    verification: {
-      enabled: true,
-      timeoutMs: 4000, // How long to wait for server response
-      trackFailures: true,
-      maxConsecutiveFailures: 3,
-    },
-  },
-
   // ===== SCHEDULED RESTART =====
   scheduling: {
     autoRestart: process.env.AUTO_RESTART_ENABLED === "true",
@@ -75,7 +40,6 @@ module.exports = {
   // ===== LOGGING =====
   logging: {
     enableTimestamp: true,
-    enableAntiAfkLogs: true,
     enableConnectionLogs: true,
     enablePacketLogs: false, // Set true để debug
   },
@@ -100,13 +64,9 @@ module.exports = {
   // Compliance and warnings
   compliance: {
     aternosWarning: true,
-    riskLevel: "HIGH",
+    riskLevel: "MEDIUM",
     recommendation: "Consider migrating to bot-friendly hosting platform",
-    violatedRules: [
-      "§5.2.c.1: Using fake players (bots)",
-      "§5.2.c.2: Automatically reconnecting after disconnect",
-      "§5.2.c.3: Faking player activity",
-    ],
+    violatedRules: ["§5.2.c.2: Automatically reconnecting after disconnect"],
     legalAlternatives: [
       "Minehut (free, bot-friendly)",
       "FreeMcServer.net (free, bot-friendly)",

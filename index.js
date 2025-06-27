@@ -62,16 +62,12 @@ let botStatus = {
   totalUptime: 0,
   startTime: new Date(),
   serverOnline: false,
-  antiAfkActive: false,
   packetsSent: 0,
   packetsReceived: 0,
   currentPosition: { x: 0, y: 64, z: 0 },
-  lastMovement: null,
   hasSpawned: false,
   sessionValidated: false,
   serverCommunicationVerified: false,
-  lastSentMessage: null,
-  lastSentCommand: null,
 };
 
 // Express web server để keep repl alive
@@ -106,7 +102,7 @@ app.get("/logs/stream", (req, res) => {
 // Routes
 app.get("/", (req, res) => {
   res.json({
-    status: "Aternos Bedrock Keep-Alive Bot",
+    status: "Aternos Bedrock Keep-Alive Bot (Connection Only)",
     server: `${SERVER_CONFIG.host}:${SERVER_CONFIG.port}`,
     botStatus: {
       connected: botStatus.isConnected,
@@ -117,17 +113,15 @@ app.get("/", (req, res) => {
       lastDisconnected: botStatus.lastDisconnected,
       reconnectAttempts: botStatus.reconnectAttempts,
       uptime: Math.floor((Date.now() - botStatus.startTime.getTime()) / 1000),
-      antiAfkActive: botStatus.antiAfkActive,
       packetsSent: botStatus.packetsSent,
       packetsReceived: botStatus.packetsReceived,
       currentPosition: botStatus.currentPosition,
-      lastMovement: botStatus.lastMovement,
     },
     serverInfo: SERVER_CONFIG,
     compliance: {
       aternosPolicy: "⚠️ WARNING: This bot may violate Aternos ToS",
       recommendation: "Consider switching to bot-friendly hosting",
-      riskLevel: "HIGH",
+      riskLevel: "MEDIUM",
     },
   });
 });
@@ -138,6 +132,7 @@ app.get("/health", (req, res) => {
     status: botStatus.isConnected ? "healthy" : "unhealthy",
     timestamp: new Date().toISOString(),
     uptime: Math.floor((Date.now() - botStatus.startTime.getTime()) / 1000),
+    mode: "Connection Only",
   });
 });
 
@@ -155,34 +150,8 @@ app.get("/stats", (req, res) => {
     botStatus,
     serverConfig: SERVER_CONFIG,
     betterStackEnabled: BETTER_STACK.enabled,
-    antiAfkConfig: config.antiAfk,
-    availableMethods: Object.keys(antiAfkMethods),
+    mode: "Connection Only",
     complianceWarning: "⚠️ This bot may violate Aternos Terms of Service",
-  });
-});
-
-app.get("/change-antiafk/:method", (req, res) => {
-  const method = req.params.method;
-
-  if (!antiAfkMethods[method]) {
-    return res.status(400).json({
-      error: "Invalid method",
-      available: Object.keys(antiAfkMethods),
-    });
-  }
-
-  config.antiAfk.method = method;
-  broadcastLog(`Anti-AFK method changed to: ${method}`, "info");
-
-  // Restart anti-AFK with new method
-  if (botStatus.isConnected) {
-    stopAntiAFK();
-    setTimeout(startAntiAFK, 1000);
-  }
-
-  res.json({
-    message: `Anti-AFK method changed to: ${method}`,
-    newConfig: config.antiAfk,
   });
 });
 
@@ -259,11 +228,7 @@ app.get("/compliance", (req, res) => {
   res.json({
     warning: "⚠️ ATERNOS POLICY VIOLATION WARNING",
     details: {
-      violated_rules: [
-        "§5.2.c.1: Using fake players (bots)",
-        "§5.2.c.2: Automatically reconnecting after disconnect",
-        "§5.2.c.3: Faking player activity",
-      ],
+      violated_rules: ["§5.2.c.2: Automatically reconnecting after disconnect"],
       consequences: ["Account suspension", "Server deletion", "Permanent ban"],
       legal_alternatives: [
         "Minehut (free, bot-friendly)",
@@ -287,7 +252,6 @@ app.listen(PORT, () => {
 // Bot variables
 let botClient = null;
 let reconnectTimeout = null;
-let antiAfkInterval = null;
 let betterStackInterval = null;
 
 // Better Stack functions
@@ -433,46 +397,38 @@ const createBot = () => {
       clearAllTimeouts(); // Clear all timeouts
 
       broadcastLog("🎮 Bot successfully spawned in game world!", "info");
-      broadcastLog("✅ Ready to receive server responses", "info");
+      broadcastLog(
+        "✅ Connection established - maintaining idle presence",
+        "info"
+      );
 
       botStatus.isConnected = true;
       botStatus.hasSpawned = true;
       botStatus.lastConnected = now.toISOString();
       botStatus.reconnectAttempts = 0;
 
+      // Initialize position properly
+      if (
+        !botStatus.currentPosition ||
+        botStatus.currentPosition.x === undefined ||
+        botStatus.currentPosition.y === undefined ||
+        botStatus.currentPosition.z === undefined
+      ) {
+        botStatus.currentPosition = { x: 0, y: 64, z: 0 };
+        broadcastLog(
+          "📍 Position initialized to spawn point (0, 64, 0)",
+          "info"
+        );
+      }
+
       // Verify spawn with test message (delayed to ensure server is ready)
       setTimeout(() => {
         testServerCommunication();
       }, 3000);
 
-      // Start anti-AFK ONLY after confirmed spawn
-      setTimeout(() => {
-        if (botStatus.hasSpawned && botStatus.sessionValidated) {
-          // Check if anti-AFK is already active (from auto-enable)
-          if (!botStatus.antiAfkActive) {
-            broadcastLog(
-              "🚀 Starting anti-AFK from spawn verification",
-              "info"
-            );
-            startAntiAFK();
-          } else {
-            broadcastLog(
-              "ℹ️ Anti-AFK already active - spawn verification passed",
-              "info"
-            );
-          }
-        } else {
-          // Only log warning if anti-AFK is not already active
-          if (!botStatus.antiAfkActive) {
-            broadcastLog(
-              "⚠️ Spawn verification incomplete but will rely on auto-enable logic",
-              "warn"
-            );
-          }
-        }
-      }, 7000);
-
-      sendBetterStackAlert("Bot connected and spawned successfully");
+      sendBetterStackAlert(
+        "Bot connected and spawned successfully (Connection Only Mode)"
+      );
     });
 
     // Enhanced text packet handling for verification
@@ -496,93 +452,6 @@ const createBot = () => {
               "info"
             );
             botStatus.serverCommunicationVerified = true;
-
-            // Auto-enable anti-AFK when server communication is confirmed
-            if (botStatus.hasSpawned && !botStatus.antiAfkActive) {
-              broadcastLog(
-                "🚀 Auto-enabling anti-AFK due to confirmed server communication",
-                "info"
-              );
-              setTimeout(() => {
-                // Double check before starting to avoid conflicts
-                if (!botStatus.antiAfkActive && botStatus.hasSpawned) {
-                  startAntiAFK();
-                }
-              }, 1000);
-            }
-
-            // If we're receiving messages but not spawned, we're in a limbo state
-            if (!botStatus.hasSpawned) {
-              broadcastLog(
-                "⚠️ Receiving messages but not spawned - checking connection state",
-                "warn"
-              );
-
-              // Extend spawn timeout since we're clearly connected
-              if (spawnTimeout) {
-                clearTimeout(spawnTimeout);
-                spawnTimeout = setTimeout(() => {
-                  if (!botStatus.hasSpawned) {
-                    broadcastLog(
-                      "⏰ Extended spawn timeout - forcing connection retry",
-                      "error"
-                    );
-                    if (botClient) {
-                      botClient.disconnect();
-                    }
-                  }
-                }, 60000); // Give another 60 seconds
-              }
-            }
-          }
-
-          // Verify our sent messages are echoed back by server
-          if (
-            botStatus.lastSentMessage &&
-            !botStatus.lastSentMessage.verified
-          ) {
-            if (
-              message.includes(botStatus.lastSentMessage.content) &&
-              sourceName === SERVER_CONFIG.username
-            ) {
-              broadcastLog(
-                "✅ Chat message verified - server received and echoed!",
-                "info"
-              );
-              botStatus.lastSentMessage.verified = true;
-              botStatus.serverCommunicationVerified = true;
-            }
-          }
-
-          // Check for command responses
-          if (
-            botStatus.lastSentCommand &&
-            !botStatus.lastSentCommand.verified
-          ) {
-            const commandContent = botStatus.lastSentCommand.content;
-
-            // Common command response patterns
-            if (
-              message.includes("Unknown command") ||
-              message.includes("Usage:") ||
-              message.includes("help") ||
-              message.includes("Available commands") ||
-              message.includes("list") ||
-              message.includes("players online") ||
-              message.includes("Time:") ||
-              (commandContent.includes("/help") &&
-                message.includes("command")) ||
-              (commandContent.includes("/list") &&
-                (message.includes("player") || message.includes("online"))) ||
-              (commandContent.includes("/time") && message.includes("time"))
-            ) {
-              broadcastLog(
-                "✅ Command response verified - server processed command!",
-                "info"
-              );
-              botStatus.lastSentCommand.verified = true;
-              botStatus.serverCommunicationVerified = true;
-            }
           }
 
           // General server communication indicators
@@ -595,15 +464,6 @@ const createBot = () => {
           ) {
             broadcastLog(
               `👋 Server acknowledged bot presence: ${message}`,
-              "info"
-            );
-            botStatus.serverCommunicationVerified = true;
-          }
-
-          // Check for server responses to test messages
-          if (message.includes("test connection")) {
-            broadcastLog(
-              "✅ Test message verified - server communication confirmed!",
               "info"
             );
             botStatus.serverCommunicationVerified = true;
@@ -640,7 +500,6 @@ const createBot = () => {
       botStatus.serverCommunicationVerified = false;
       botStatus.lastDisconnected = now.toISOString();
 
-      stopAntiAFK();
       handleDisconnect(disconnectReason);
     });
 
@@ -674,7 +533,6 @@ const createBot = () => {
 
       botStatus.isConnected = false;
       botStatus.hasSpawned = false;
-      stopAntiAFK();
       handleDisconnect(`Error: ${errorMessage}`);
     });
 
@@ -738,9 +596,6 @@ const testServerCommunication = () => {
   }
 
   broadcastLog("🧪 Testing server communication...", "info");
-
-  // Skip packet sending test for now since it causes format errors
-  // Just rely on existing message detection logic
   broadcastLog("📊 Checking existing server communication...", "info");
 
   setTimeout(() => {
@@ -755,15 +610,6 @@ const testServerCommunication = () => {
         "info"
       );
       botStatus.serverCommunicationVerified = true;
-
-      // Enable anti-AFK since communication is working
-      if (!botStatus.antiAfkActive && botStatus.hasSpawned) {
-        broadcastLog(
-          "🚀 Enabling anti-AFK due to confirmed server communication",
-          "info"
-        );
-        startAntiAFK();
-      }
     } else {
       broadcastLog(
         "⚠️ No server communication detected yet - will monitor",
@@ -775,358 +621,10 @@ const testServerCommunication = () => {
         if (botStatus.packetsReceived > 0) {
           broadcastLog("✅ Delayed server communication detected!", "info");
           botStatus.serverCommunicationVerified = true;
-
-          if (!botStatus.antiAfkActive && botStatus.hasSpawned) {
-            broadcastLog(
-              "🚀 Enabling anti-AFK due to delayed server communication",
-              "info"
-            );
-            startAntiAFK();
-          }
         }
       }, 10000); // Monitor for another 10 seconds
     }
   }, 2000);
-};
-
-// Enhanced Anti-AFK Methods with Server Communication Verification
-const antiAfkMethods = {
-  // Method 1: Verified chat messages (with server response tracking)
-  verified_chat: () => {
-    try {
-      if (!botClient.write || !botStatus.hasSpawned) return false;
-
-      const messages = [".", "online", "afk check", "keepalive"];
-      const randomMessage =
-        messages[Math.floor(Math.random() * messages.length)];
-
-      // Track message for verification
-      const messageId = Date.now();
-      botStatus.lastSentMessage = {
-        content: randomMessage,
-        timestamp: messageId,
-        verified: false,
-      };
-
-      botClient.write("text", {
-        type: 1, // Chat message
-        needs_translation: false,
-        source_name: SERVER_CONFIG.username,
-        message: randomMessage,
-        parameters: [],
-        xuid: "",
-        platform_chat_id: "",
-      });
-
-      broadcastLog(
-        `💬 Chat sent: "${randomMessage}" (verifying server receipt...)`,
-        "info"
-      );
-      botStatus.packetsSent++;
-
-      // Check for server response in 3 seconds
-      setTimeout(() => {
-        if (botStatus.lastSentMessage && !botStatus.lastSentMessage.verified) {
-          broadcastLog("⚠️ Server did not acknowledge chat message", "warn");
-        }
-      }, 3000);
-
-      return true;
-    } catch (error) {
-      broadcastLog(`❌ Verified chat error: ${error.message}`, "error");
-      return false;
-    }
-  },
-
-  // Method 2: Server command with response validation
-  verified_command: () => {
-    try {
-      if (!botClient.write || !botStatus.hasSpawned) return false;
-
-      const commands = ["/help", "/list", "/time query day"];
-      const randomCommand =
-        commands[Math.floor(Math.random() * commands.length)];
-
-      // Track command for verification
-      botStatus.lastSentCommand = {
-        content: randomCommand,
-        timestamp: Date.now(),
-        verified: false,
-      };
-
-      botClient.write("command_request", {
-        command: randomCommand,
-        origin: {
-          type: 0, // Player
-          uuid: "",
-          request_id: `req_${Date.now()}`,
-          player_unique_id: BigInt(1),
-        },
-        internal: false,
-        version: 1,
-      });
-
-      broadcastLog(
-        `⚡ Command sent: "${randomCommand}" (waiting for server response...)`,
-        "info"
-      );
-      botStatus.packetsSent++;
-
-      // Check for server response
-      setTimeout(() => {
-        if (botStatus.lastSentCommand && !botStatus.lastSentCommand.verified) {
-          broadcastLog("⚠️ Server did not respond to command", "warn");
-          broadcastLog(
-            "💡 This indicates packets may not be reaching server",
-            "warn"
-          );
-        }
-      }, 4000);
-
-      return true;
-    } catch (error) {
-      broadcastLog(`❌ Verified command error: ${error.message}`, "error");
-      return false;
-    }
-  },
-
-  // Method 3: Player action with proper Bedrock format
-  player_action_verified: () => {
-    try {
-      if (!botClient.write || !botStatus.hasSpawned) return false;
-
-      // Use proper Bedrock player action packet
-      botClient.write("player_action", {
-        runtime_entity_id: BigInt(1),
-        action: 5, // Start sleeping (harmless action)
-        coordinates: {
-          x: Math.floor(botStatus.currentPosition.x),
-          y: Math.floor(botStatus.currentPosition.y),
-          z: Math.floor(botStatus.currentPosition.z),
-        },
-        result_position: {
-          x: Math.floor(botStatus.currentPosition.x),
-          y: Math.floor(botStatus.currentPosition.y),
-          z: Math.floor(botStatus.currentPosition.z),
-        },
-        face: 0,
-      });
-
-      broadcastLog("🎮 Player action sent (sleep attempt)", "info");
-      botStatus.packetsSent++;
-      return true;
-    } catch (error) {
-      broadcastLog(`❌ Player action error: ${error.message}`, "error");
-      return false;
-    }
-  },
-
-  // Method 4: Connection heartbeat (always works)
-  connection_heartbeat: () => {
-    try {
-      if (botClient && botClient.socket) {
-        // For UDP connections, just maintaining the socket is often enough
-        broadcastLog("💗 Connection heartbeat - UDP socket maintained", "info");
-        botStatus.packetsSent++;
-        return true;
-      }
-      return false;
-    } catch (error) {
-      broadcastLog(`❌ Connection heartbeat error: ${error.message}`, "error");
-      return false;
-    }
-  },
-
-  // Method 5: Gentle movement with server tracking
-  gentle_movement_tracked: () => {
-    try {
-      if (!botClient.write || !botStatus.hasSpawned) return false;
-
-      const currentPos = botStatus.currentPosition;
-      const smallMove = 0.001; // Extremely small movement
-
-      const newPos = {
-        x: currentPos.x + (Math.random() - 0.5) * smallMove,
-        y: currentPos.y,
-        z: currentPos.z + (Math.random() - 0.5) * smallMove,
-      };
-
-      botClient.write("move_player", {
-        runtime_id: BigInt(1),
-        position: newPos,
-        pitch: 0,
-        yaw: Math.random() * 360,
-        head_yaw: Math.random() * 360,
-        mode: 0,
-        on_ground: true,
-        riding_runtime_id: BigInt(0),
-        teleport: { cause: 0, source_entity_type: 0 },
-        tick: BigInt(Date.now()),
-      });
-
-      // Update position
-      botStatus.currentPosition = newPos;
-      botStatus.lastMovement = new Date().toISOString();
-
-      broadcastLog(
-        `🚶 Gentle movement: (${newPos.x.toFixed(4)}, ${newPos.z.toFixed(
-          4
-        )}) - may be ignored`,
-        "warn"
-      );
-      botStatus.packetsSent++;
-      return true;
-    } catch (error) {
-      broadcastLog(`❌ Gentle movement error: ${error.message}`, "error");
-      return false;
-    }
-  },
-
-  // Method 6: Simple presence (fallback)
-  simple_presence: () => {
-    try {
-      broadcastLog("✨ Simple presence maintained", "info");
-      botStatus.packetsSent++;
-      return true;
-    } catch (error) {
-      broadcastLog(`❌ Simple presence error: ${error.message}`, "error");
-      return false;
-    }
-  },
-};
-
-// Enhanced Anti-AFK system with server verification
-const startAntiAFK = () => {
-  // Prevent multiple starts
-  if (botStatus.antiAfkActive) {
-    broadcastLog("⚠️ Anti-AFK already active - ignoring start request", "warn");
-    return;
-  }
-
-  stopAntiAFK(); // Clear existing interval
-
-  // Only start if properly connected and spawned
-  if (!botStatus.hasSpawned || !botStatus.isConnected) {
-    broadcastLog(
-      "❌ Cannot start anti-AFK - bot not properly spawned",
-      "error"
-    );
-    return;
-  }
-
-  botStatus.antiAfkActive = true;
-  const method = config.antiAfk.method || "verified_chat";
-
-  broadcastLog(
-    `🚀 Starting verified anti-AFK system (${method} method)...`,
-    "info"
-  );
-  broadcastLog(
-    "🔍 Server communication will be monitored for effectiveness",
-    "info"
-  );
-
-  let consecutiveFailures = 0;
-  const maxFailures = 3;
-
-  antiAfkInterval = setInterval(() => {
-    if (!botStatus.isConnected || !botClient || !botStatus.hasSpawned) {
-      broadcastLog("🛑 Anti-AFK stopped - bot not connected/spawned", "warn");
-      stopAntiAFK();
-      return;
-    }
-
-    let success = false;
-
-    // Try primary method first
-    if (antiAfkMethods[method]) {
-      success = antiAfkMethods[method]();
-    }
-
-    // Enhanced fallback system with server verification priority
-    if (!success && config.antiAfk.fallbackToKeepalive) {
-      broadcastLog(
-        "🔄 Primary method failed, trying verified fallbacks...",
-        "warn"
-      );
-
-      // Fallback order prioritizing methods that can be verified
-      const verifiedFallbackOrder = [
-        "verified_chat",
-        "verified_command",
-        "player_action_verified",
-        "connection_heartbeat",
-        "gentle_movement_tracked",
-        "simple_presence",
-      ];
-
-      for (const fallbackMethod of verifiedFallbackOrder) {
-        if (fallbackMethod !== method && antiAfkMethods[fallbackMethod]) {
-          broadcastLog(
-            `🔄 Trying verified fallback: ${fallbackMethod}`,
-            "warn"
-          );
-          if (antiAfkMethods[fallbackMethod]()) {
-            success = true;
-            break;
-          }
-        }
-      }
-    }
-
-    // Track failure patterns
-    if (!success) {
-      consecutiveFailures++;
-      broadcastLog(
-        `❌ Anti-AFK cycle failed (${consecutiveFailures}/${maxFailures})`,
-        "error"
-      );
-
-      if (consecutiveFailures >= maxFailures) {
-        broadcastLog(
-          "🚨 Multiple anti-AFK failures - connection may be compromised",
-          "error"
-        );
-        broadcastLog(
-          "🔧 Consider restarting bot or checking server status",
-          "warn"
-        );
-        // Don't auto-restart to avoid spam, just warn
-      }
-    } else {
-      consecutiveFailures = 0; // Reset failure counter on success
-    }
-
-    // Overall status
-    if (success) {
-      broadcastLog("✅ Anti-AFK cycle completed successfully", "info");
-    } else {
-      broadcastLog(
-        "⚠️ Anti-AFK: No methods successful - maintaining connection only",
-        "warn"
-      );
-    }
-  }, config.antiAfk.interval);
-
-  broadcastLog(
-    `✅ Anti-AFK system started successfully with ${
-      config.antiAfk.interval / 1000
-    }s interval`,
-    "info"
-  );
-};
-
-const stopAntiAFK = () => {
-  if (antiAfkInterval) {
-    clearInterval(antiAfkInterval);
-    antiAfkInterval = null;
-    botStatus.antiAfkActive = false;
-    broadcastLog("🛑 Anti-AFK system stopped", "info");
-  } else if (botStatus.antiAfkActive) {
-    // Handle case where status says active but no interval
-    botStatus.antiAfkActive = false;
-    broadcastLog("🛑 Anti-AFK status reset (no active interval)", "warn");
-  }
 };
 
 // Handle disconnect và reconnect
@@ -1177,8 +675,6 @@ const handleDisconnect = (reason = "Unknown") => {
 const restartBot = () => {
   broadcastLog("Manual restart triggered", "warn");
 
-  stopAntiAFK();
-
   if (botClient) {
     try {
       botClient.disconnect();
@@ -1224,8 +720,6 @@ if (BETTER_STACK.enabled) {
 const cleanup = () => {
   broadcastLog("Shutting down bot...", "warn");
 
-  stopAntiAFK();
-
   if (betterStackInterval) {
     clearInterval(betterStackInterval);
   }
@@ -1269,7 +763,11 @@ broadcastLog(
   "warn"
 );
 broadcastLog("🔗 Consider migrating to bot-friendly hosting", "warn");
-broadcastLog("Starting Aternos Bedrock Keep-Alive Bot...", "info");
+broadcastLog(
+  "Starting Aternos Bedrock Keep-Alive Bot (Connection Only Mode)...",
+  "info"
+);
+
 broadcastLog(`Server: ${SERVER_CONFIG.host}:${SERVER_CONFIG.port}`, "info");
 broadcastLog(`Version: ${SERVER_CONFIG.version}`, "info");
 broadcastLog(`Username: ${SERVER_CONFIG.username}`, "info");

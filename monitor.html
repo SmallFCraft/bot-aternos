@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Aternos Bot Monitor</title>
+    <title>🤖 Aternos Bot Monitor (Connection Only)</title>
     <style>
         * {
     margin: 0;
@@ -195,6 +195,15 @@ body {
     color: #cccccc;
 }
 
+.disabled-notice {
+    background: linear-gradient(45deg, #2563eb, #1d4ed8);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    border: 2px solid #60a5fa;
+}
+
 @media (max-width: 768px) {
     .header h1 {
         font-size: 2em;
@@ -215,7 +224,7 @@ body {
     <div class="container">
         <div class="header">
             <h1>🤖 Aternos Bot Monitor</h1>
-            <p>24/7 Keep-Alive for Meo_MC403-IFBX.aternos.me:33122</p>
+            <p>Connection Only Mode - Meo_MC403-IFBX.aternos.me:33122</p>
             <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                 <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
             </p>
@@ -258,6 +267,10 @@ body {
                 <div class="metric">
                     <span class="metric-label">Position:</span>
                     <span class="metric-value" id="botPosition">Loading...</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Mode:</span>
+                    <span class="metric-value" style="color: #60a5fa;">🔕 Connection Only</span>
                 </div>
             </div>
 
@@ -347,9 +360,7 @@ body {
 
         <div class="footer">
             <p>🤖 Aternos Bedrock Keep-Alive Bot | Updated: <span id="lastUpdate">-</span></p>
-            <p style="font-size: 12px; color: #888; margin-top: 5px;">
-                ⚠️ Use at your own risk - Consider migrating to bot-friendly hosting
-            </p>
+            
         </div>
     </div>
 
@@ -543,12 +554,8 @@ body {
                         <span class="metric-value">${formatUptime(data.botStatus.uptime)}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Anti-AFK:</span>
-                        <span class="metric-value">${data.botStatus.antiAfkActive ? '🟢 Active' : '🔴 Inactive'}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Last Movement:</span>
-                        <span class="metric-value">${data.botStatus.lastMovement ? new Date(data.botStatus.lastMovement).toLocaleTimeString() : 'Never'}</span>
+                        <span class="metric-label">Mode:</span>
+                        <span class="metric-value" style="color: #60a5fa;">🔕 Connection Only</span>
                     </div>
                 `;
 
@@ -574,7 +581,7 @@ body {
                     </div>
                     <div class="metric">
                         <span class="metric-label">Risk Level:</span>
-                        <span class="metric-value" style="color: #ef4444;">${data.compliance.riskLevel}</span>
+                        <span class="metric-value" style="color: #f59e0b;">${data.compliance.riskLevel}</span>
                     </div>
                 `;
 
@@ -757,7 +764,7 @@ body {
         };
 
         // Initialize
-        addLocalLogEntry('Dashboard initialized');
+        addLocalLogEntry('Dashboard initialized (Connection Only Mode)');
         connectLogStream(); // Connect to live log stream
         updateStatus();
         updateInterval = setInterval(updateStatus, 15000); // Update every 15 seconds
@@ -765,6 +772,7 @@ body {
         // Add initial log entries
         setTimeout(() => {
             addLocalLogEntry('Auto-refresh enabled (15s interval)');
+            
         }, 1000);
 
         // Cleanup

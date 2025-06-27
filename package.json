@@ -1,6 +1,6 @@
 {
   "name": "aternos-bedrock-bot",
-  "version": "1.0.0",
+  "version": "1.0.0", 
   "description": "24/7 Keep-Alive Bot for Aternos Bedrock Server",
   "main": "index.js",
   "scripts": {
