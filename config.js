@@ -39,7 +39,7 @@ module.exports = {
 
   // ===== WEB SERVER =====
   webServer: {
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 10000, // Render sử dụng port 10000
     enableDashboard: true,
     enableHealthCheck: true,
   },
@@ -49,7 +49,7 @@ module.exports = {
     betterStack: {
       enabled: process.env.BETTER_STACK_ENABLED === "true",
       heartbeatUrl: process.env.BETTER_STACK_HEARTBEAT || "",
-      apiKey: process.env.BETTER_STACK_API_KEY || "qSKMsyh2kvpkE7azw334VFrF",
+      apiKey: process.env.BETTER_STACK_API_KEY || "",
       heartbeatInterval: 60000, // 1 phút
     },
   },

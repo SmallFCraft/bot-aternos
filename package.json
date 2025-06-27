@@ -7,6 +7,9 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "node index.js",
+    "build": "echo 'No build step required'",
+    "postinstall": "echo 'Installation complete'",
+    "setup-betterstack": "node setup-betterstack.js",
     "crack": "node -e \"const config = require('./config'); config.useCrackServerPreset(); console.log('✅ Crack mode enabled');\"",
     "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\""
   },

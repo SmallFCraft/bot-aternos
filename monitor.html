@@ -230,7 +230,10 @@
     <div class="container">
         <div class="header">
             <h1>🤖 Aternos Bedrock Bot Monitor</h1>
-            <p>Keep-Alive Bot cho server Meo_MC403-IFBX</p>
+            <p>Keep-Alive Bot cho server Meo_MC403-IFBX | Deployed on Render.com</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
+            </p>
         </div>
 
         <div class="grid">
@@ -290,6 +293,32 @@
                 <div id="betterStackStatus" class="loading">Đang tải...</div>
                 <div style="margin-top: 15px;">
                     <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack Dashboard</a>
+                    <button class="btn" onclick="testBetterStackConnection()">🧪 Test Connection</button>
+                </div>
+            </div>
+
+            <!-- Render Deployment Info -->
+            <div class="card">
+                <h3>🚀 Render Deployment</h3>
+                <div class="metric">
+                    <span class="metric-label">App URL:</span>
+                    <span class="metric-value">
+                        <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
+                    </span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Health Check:</span>
+                    <span class="metric-value">
+                        <a href="https://bot-aternos-6ltq.onrender.com/health" target="_blank" style="color: #00ff88; text-decoration: none;">/health</a>
+                    </span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Platform:</span>
+                    <span class="metric-value">Render.com</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Region:</span>
+                    <span class="metric-value">US West (Oregon)</span>
                 </div>
             </div>
         </div>
@@ -425,20 +454,30 @@
                     </div>
                 `;
 
-                // Update Better Stack status
+                // Update Better Stack status  
                 const betterStackDiv = document.getElementById('betterStackStatus');
                 betterStackDiv.innerHTML = `
                     <div class="metric">
-                        <span class="metric-label">Monitoring:</span>
-                        <span class="metric-value">${data.serverInfo ? '🟢 Active' : '🔴 Disabled'}</span>
+                        <span class="metric-label">Monitor Status:</span>
+                        <span class="metric-value">${data.betterStackEnabled ? '🟢 Enabled' : '🔴 Disabled'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Monitor URL:</span>
+                        <span class="metric-value">bot-aternos-6ltq.onrender.com</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Health Endpoint:</span>
-                        <span class="metric-value">/health</span>
+                        <span class="metric-value">
+                            <a href="https://bot-aternos-6ltq.onrender.com/health" target="_blank" style="color: #00ff88; text-decoration: none;">/health</a>
+                        </span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Heartbeat:</span>
+                        <span class="metric-label">Check Frequency:</span>
                         <span class="metric-value">Every 60s</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">API Key:</span>
+                        <span class="metric-value">qSKMsyh2...VFrF (configured)</span>
                     </div>
                 `;
 
@@ -527,6 +566,28 @@
             } catch (error) {
                 alert(`❌ Error changing method: ${error.message}`);
                 addLogEntry(`Error changing anti-AFK method: ${error.message}`, 'error');
+            }
+        };
+
+        const testBetterStackConnection = async () => {
+            try {
+                addLogEntry('Testing Better Stack connection...');
+                
+                // Test health endpoint
+                const healthResponse = await fetch('https://bot-aternos-6ltq.onrender.com/health');
+                const healthData = await healthResponse.json();
+                
+                if (healthResponse.ok && healthData.status === 'healthy') {
+                    alert(`✅ Better Stack connection test successful!\n\nHealth Status: ${healthData.status}\nTimestamp: ${healthData.timestamp}\nUptime: ${healthData.uptime}s`);
+                    addLogEntry('Better Stack connection test: ✅ SUCCESS');
+                } else {
+                    alert(`⚠️ Health endpoint responding but status: ${healthData.status}`);
+                    addLogEntry(`Better Stack connection test: ⚠️ Health status: ${healthData.status}`);
+                }
+                
+            } catch (error) {
+                alert(`❌ Better Stack connection test failed: ${error.message}`);
+                addLogEntry(`Better Stack connection test: ❌ FAILED - ${error.message}`, 'error');
             }
         };
 

@@ -1,0 +1,8 @@
+{
+  "monitorId": "3369084",
+  "monitorUrl": "https://betterstack.com/team/undefined/monitors/3369084",
+  "healthCheckUrl": "https://bot-aternos-6ltq.onrender.com/health",
+  "dashboardUrl": "https://bot-aternos-6ltq.onrender.com/dashboard",
+  "heartbeatUrl": "https://betterstack.com/api/v1/heartbeat/aternos-bedrock-bot",
+  "setupDate": "2025-06-27T14:45:07.128Z"
+}
