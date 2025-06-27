@@ -137,20 +137,12 @@ app.post("/setup-betterstack", (req, res) => {
     });
   }
 
-  // Save configuration to file
-  const betterstackConfig = {
-    status: "ENABLED",
+  // Log configuration (no file needed - using runtime config)
+  console.log(`🔧 Better Stack setup:`, {
     heartbeatUrl: heartbeatUrl,
-    healthCheckUrl: "https://bot-aternos-6ltq.onrender.com/health",
-    dashboardUrl: "https://bot-aternos-6ltq.onrender.com/dashboard",
     setupDate: new Date().toISOString(),
     interval: "60s",
-  };
-
-  require("fs").writeFileSync(
-    "betterstack-config.json",
-    JSON.stringify(betterstackConfig, null, 2)
-  );
+  });
 
   // Update runtime configuration
   BETTER_STACK.heartbeatUrl = heartbeatUrl;
@@ -228,30 +220,10 @@ const sendBetterStackHeartbeat = async () => {
 };
 
 const sendBetterStackAlert = async (message, type = "info") => {
-  if (!BETTER_STACK.enabled || !BETTER_STACK.apiKey) return;
-
-  try {
-    await axios.post(
-      "https://uptime.betterstack.com/api/v1/incidents",
-      {
-        name: `Aternos Bot: ${message}`,
-        summary: message,
-        description: `Bot status: ${JSON.stringify(botStatus, null, 2)}`,
-        severity: type === "error" ? "critical" : "info",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${BETTER_STACK.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 5000,
-      }
-    );
-
-    console.log(`📢 Better Stack alert sent: ${message}`);
-  } catch (error) {
-    console.log(`⚠️ Better Stack alert failed: ${error.message}`);
-  }
+  // Disabled - only using heartbeat monitoring, not incident alerts
+  // This prevents 404 errors since we don't have API key for incident creation
+  console.log(`📝 Event logged: ${message} (type: ${type})`);
+  return;
 };
 
 // Tạo bot connection

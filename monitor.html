@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Aternos Bedrock Bot Monitor</title>
+    <title>🤖 Aternos Bot Monitor</title>
     <style>
         * {
             margin: 0;
@@ -41,7 +41,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .grid {
+        .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
@@ -54,12 +54,11 @@
             padding: 25px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
         }
 
         .card h3 {
@@ -140,26 +139,51 @@
             color: #ffffff;
         }
 
-        .btn-danger:hover {
-            background: linear-gradient(45deg, #cc3333, #aa2222);
-            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
-        }
-
-        .log-container {
-            background: #1a1a1a;
-            border-radius: 10px;
+        .setup-form {
+            background: linear-gradient(45deg, #1e3a8a, #7c3aed);
             padding: 20px;
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #3b82f6;
         }
 
-        .log-entry {
-            margin: 5px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: #cccccc;
+        .setup-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #374151;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .setup-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #059669, #0d9488);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .status-frame {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
         }
 
         .footer {
@@ -171,57 +195,17 @@
             color: #cccccc;
         }
 
-        .uptime-bar {
-            width: 100%;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .uptime-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00cc6a);
-            transition: width 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .server-info {
-            background: rgba(0, 255, 136, 0.1);
-            border-left: 4px solid #00ff88;
-        }
-
-        .better-stack-info {
-            background: rgba(255, 165, 0, 0.1);
-            border-left: 4px solid #ffa500;
-        }
-
-        .loading {
-            text-align: center;
-            color: #cccccc;
-            font-style: italic;
-        }
-
-        .error {
-            color: #ff4444;
-            background: rgba(255, 68, 68, 0.1);
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2em;
             }
             
-            .grid {
+            .status-grid {
                 grid-template-columns: 1fr;
             }
             
-            .container {
-                padding: 10px;
+            .controls {
+                justify-content: center;
             }
         }
     </style>
@@ -229,25 +213,25 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 Aternos Bedrock Bot Monitor</h1>
-            <p>Keep-Alive Bot cho server Meo_MC403-IFBX | Deployed on Render.com</p>
+            <h1>🤖 Aternos Bot Monitor</h1>
+            <p>24/7 Keep-Alive for Meo_MC403-IFBX.aternos.me:33122</p>
             <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                 <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
             </p>
         </div>
 
-        <div class="grid">
-            <!-- Bot Status Card -->
+        <div class="status-grid">
+            <!-- Bot Status -->
             <div class="card" id="statusCard">
                 <h3>📊 Bot Status</h3>
-                <div id="botStatus" class="loading">Đang tải...</div>
+                <div id="botStatus">Loading...</div>
             </div>
 
-            <!-- Server Info Card -->
-            <div class="card server-info">
-                <h3>🎮 Server Information</h3>
+            <!-- Server Info -->
+            <div class="card">
+                <h3>🎮 Server</h3>
                 <div class="metric">
-                    <span class="metric-label">Server:</span>
+                    <span class="metric-label">Address:</span>
                     <span class="metric-value">Meo_MC403-IFBX.aternos.me:33122</span>
                 </div>
                 <div class="metric">
@@ -255,118 +239,87 @@
                     <span class="metric-value">Bedrock Edition</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">Version:</span>
-                    <span class="metric-value">1.21.71.01</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Aternos Link:</span>
-                    <span class="metric-value">
-                        <a href="https://add.aternos.org/Meo_MC403-IFBX" target="_blank" style="color: #00ff88; text-decoration: none;">add.aternos.org/Meo_MC403-IFBX</a>
-                    </span>
+                    <span class="metric-label">Username:</span>
+                    <span class="metric-value" id="botUsername">Loading...</span>
                 </div>
             </div>
 
-            <!-- Statistics Card -->
+            <!-- Statistics -->
             <div class="card">
-                <h3>📈 Statistics</h3>
-                <div id="statisticsContent" class="loading">Đang tải...</div>
+                <h3>📈 Stats</h3>
+                <div id="statisticsContent">Loading...</div>
             </div>
 
-            <!-- Anti-AFK Configuration -->
+            <!-- Better Stack Setup -->
             <div class="card">
-                <h3>🛡️ Anti-AFK Configuration</h3>
-                <div id="antiAfkConfig" class="loading">Đang tải...</div>
-                <div style="margin-top: 15px;">
-                    <select id="antiAfkMethodSelect" class="btn" style="margin-right: 10px;">
-                        <option value="simple">Simple (Safest)</option>
-                        <option value="ping">Connection Ping</option>
-                        <option value="rotation">Rotation Only</option>
-                        <option value="minimal_movement">Minimal Movement</option>
-                    </select>
-                    <button class="btn" onclick="changeAntiAfkMethod()">🔧 Change Method</button>
-                </div>
-            </div>
-
-            <!-- Better Stack Card -->
-            <div class="card better-stack-info">
                 <h3>💗 Better Stack Monitoring</h3>
+                <div id="betterStackStatus">Loading...</div>
                 
-                <!-- Simple Setup Section -->
-                <div style="background: linear-gradient(45deg, #1e3a8a, #7c3aed); padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 2px solid #3b82f6;">
-                    <h4 style="color: #93c5fd; margin-bottom: 15px; font-size: 1.1em;">🚀 3-Step Setup (2 minutes)</h4>
-                    
-                    <div style="margin-bottom: 15px; color: #ddd6fe;">
-                        <div style="margin-bottom: 8px;"><strong>1.</strong> Go to <a href="https://betterstack.com" target="_blank" style="color: #60a5fa; text-decoration: underline;">betterstack.com</a> → Sign up FREE</div>
-                        <div style="margin-bottom: 8px;"><strong>2.</strong> Create Monitor → <strong>Heartbeat Monitor</strong> → Copy URL</div>
-                        <div><strong>3.</strong> Paste URL below → Click Setup → DONE!</div>
+                <!-- Setup form - will be hidden if already configured -->
+                <div id="setupForm" class="setup-form" style="display: none;">
+                    <h4 style="color: #93c5fd; margin-bottom: 15px;">🚀 Quick Setup</h4>
+                    <div style="margin-bottom: 15px; color: #ddd6fe; font-size: 14px;">
+                        1. Go to <a href="https://betterstack.com" target="_blank" style="color: #60a5fa;">betterstack.com</a><br>
+                        2. Create Heartbeat Monitor<br>
+                        3. Paste URL below → Setup
                     </div>
-
-                    <div style="margin-bottom: 10px;">
-                        <input 
-                            type="text" 
-                            id="heartbeatUrlInput" 
-                            placeholder="https://betterstack.com/api/v1/heartbeat/YOUR_KEY"
-                            style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #374151; background: rgba(0,0,0,0.5); color: white; font-size: 14px;"
-                        >
-                    </div>
-                    <button onclick="quickSetupHeartbeat()" style="width: 100%; background: linear-gradient(45deg, #059669, #0d9488); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;">
-                        ⚙️ Setup Monitor (Instant)
+                    <input 
+                        type="text" 
+                        id="heartbeatUrlInput" 
+                        placeholder="https://betterstack.com/api/v1/heartbeat/YOUR_KEY"
+                        class="setup-input"
+                    >
+                    <button onclick="quickSetupHeartbeat()" class="setup-btn">
+                        ⚙️ Setup Monitor
                     </button>
                 </div>
 
-                <div id="betterStackStatus" class="loading">Đang tải...</div>
-                <div style="margin-top: 15px;">
-                    <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack</a>
-                    <button class="btn" onclick="testBetterStackConnection()">🧪 Test</button>
+                <!-- Already configured section -->
+                <div id="configuredSection" style="display: none;">
+                    <div style="background: linear-gradient(45deg, #059669, #0d9488); padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                        <div style="color: white; font-weight: bold; margin-bottom: 10px;">✅ Monitoring Active</div>
+                        <div style="color: #e6fffa; font-size: 14px; margin-bottom: 8px;">Professional 24/7 monitoring enabled</div>
+                        <div style="color: #e6fffa; font-size: 12px; opacity: 0.9;">Heartbeat every 60 seconds → Better Stack dashboard</div>
+                        <button onclick="showSetupForm()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 13px;">
+                            🔧 Change Heartbeat URL
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Render Deployment Info -->
-            <div class="card">
-                <h3>🚀 Render Deployment</h3>
-                <div class="metric">
-                    <span class="metric-label">App URL:</span>
-                    <span class="metric-value">
-                        <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
-                    </span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Health Check:</span>
-                    <span class="metric-value">
-                        <a href="https://bot-aternos-6ltq.onrender.com/health" target="_blank" style="color: #00ff88; text-decoration: none;">/health</a>
-                    </span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Platform:</span>
-                    <span class="metric-value">Render.com</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">Region:</span>
-                    <span class="metric-value">US West (Oregon)</span>
-                </div>
+        <!-- Aternos Status Page Integration -->
+        <div class="card">
+            <h3>📊 Aternos Network Status</h3>
+            <p style="margin-bottom: 15px; color: #cccccc;">Real-time status from Aternos infrastructure</p>
+            <iframe 
+                src="https://aternos.betteruptime.com/" 
+                class="status-frame"
+                title="Aternos Status Page"
+            ></iframe>
+            <div style="text-align: center; margin-top: 10px;">
+                <a href="https://aternos.betteruptime.com/" target="_blank" class="btn">🔗 Open Full Status Page</a>
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="card">
-            <h3>⚙️ Controls</h3>
-            <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+        <div class="controls">
+            <button class="btn" onclick="refreshData()">🔄 Refresh</button>
             <button class="btn btn-danger" onclick="restartBot()">🚨 Restart Bot</button>
-            <a href="/health" target="_blank" class="btn">❤️ Health Check</a>
-            <a href="/stats" target="_blank" class="btn">📊 Raw Stats</a>
+            <a href="/health" target="_blank" class="btn">❤️ Health</a>
+            <a href="/stats" target="_blank" class="btn">📊 Raw Data</a>
         </div>
 
-        <!-- Live Logs -->
+        <!-- Live Status Log -->
         <div class="card">
             <h3>📋 Live Status Log</h3>
-            <div class="log-container" id="liveLog">
-                <div class="log-entry">Khởi tạo dashboard...</div>
+            <div id="liveLog" style="background: #1a1a1a; border-radius: 10px; padding: 15px; max-height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #cccccc;">
+                <div>Initializing dashboard...</div>
             </div>
         </div>
 
         <div class="footer">
-            <p>🤖 Aternos Bedrock Keep-Alive Bot | Made with ❤️ for 24/7 uptime</p>
-            <p>Last updated: <span id="lastUpdate">-</span></p>
+            <p>🤖 Aternos Bedrock Keep-Alive Bot | Updated: <span id="lastUpdate">-</span></p>
         </div>
     </div>
 
@@ -374,14 +327,14 @@
         let updateInterval;
         let logEntries = [];
 
-        const addLogEntry = (message, type = 'info') => {
+        const addLogEntry = (message) => {
             const timestamp = new Date().toLocaleTimeString();
             const entry = `[${timestamp}] ${message}`;
             logEntries.unshift(entry);
             
-            // Keep only last 20 entries
-            if (logEntries.length > 20) {
-                logEntries = logEntries.slice(0, 20);
+            // Keep only last 15 entries
+            if (logEntries.length > 15) {
+                logEntries = logEntries.slice(0, 15);
             }
             
             updateLiveLog();
@@ -390,7 +343,7 @@
         const updateLiveLog = () => {
             const logContainer = document.getElementById('liveLog');
             logContainer.innerHTML = logEntries.map(entry => 
-                `<div class="log-entry">${entry}</div>`
+                `<div style="margin: 2px 0;">${entry}</div>`
             ).join('');
         };
 
@@ -401,9 +354,9 @@
             const secs = seconds % 60;
             
             if (days > 0) {
-                return `${days}d ${hours}h ${minutes}m ${secs}s`;
+                return `${days}d ${hours}h ${minutes}m`;
             } else if (hours > 0) {
-                return `${hours}h ${minutes}m ${secs}s`;
+                return `${hours}h ${minutes}m`;
             } else if (minutes > 0) {
                 return `${minutes}m ${secs}s`;
             } else {
@@ -414,11 +367,7 @@
         const updateStatus = async () => {
             try {
                 const response = await fetch('/');
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 
                 // Update bot status
@@ -444,18 +393,13 @@
                         <span class="metric-value">${formatUptime(data.botStatus.uptime)}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Last Connected:</span>
-                        <span class="metric-value">${data.botStatus.lastConnected ? new Date(data.botStatus.lastConnected).toLocaleString() : 'Never'}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Reconnect Attempts:</span>
-                        <span class="metric-value">${data.botStatus.reconnectAttempts}</span>
-                    </div>
-                    <div class="metric">
                         <span class="metric-label">Anti-AFK:</span>
                         <span class="metric-value">${data.botStatus.antiAfkActive ? '🟢 Active' : '🔴 Inactive'}</span>
                     </div>
                 `;
+
+                // Update username
+                document.getElementById('botUsername').textContent = data.serverInfo.username;
 
                 // Update statistics
                 const statsDiv = document.getElementById('statisticsContent');
@@ -469,177 +413,78 @@
                         <span class="metric-value">${data.botStatus.packetsReceived.toLocaleString()}</span>
                     </div>
                     <div class="metric">
-                        <span class="metric-label">Username:</span>
-                        <span class="metric-value">${data.serverInfo.username}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Last Disconnected:</span>
-                        <span class="metric-value">${data.botStatus.lastDisconnected ? new Date(data.botStatus.lastDisconnected).toLocaleString() : 'Never'}</span>
+                        <span class="metric-label">Reconnects:</span>
+                        <span class="metric-value">${data.botStatus.reconnectAttempts}</span>
                     </div>
                 `;
 
-                // Update Better Stack status
+                // Update Better Stack status and show/hide setup form
                 const betterStackDiv = document.getElementById('betterStackStatus');
-                
-                // Check Better Stack configuration from /stats endpoint
-                let betterStackStatus = '🔴 Not Configured';
-                let heartbeatStatus = '❌ Missing';
+                const setupForm = document.getElementById('setupForm');
+                const configuredSection = document.getElementById('configuredSection');
                 
                 try {
                     const statsResponse = await fetch('/stats');
                     const statsData = await statsResponse.json();
                     
-                    if (statsData.betterStackEnabled) {
-                        betterStackStatus = '🟢 Enabled';
-                        heartbeatStatus = '✅ Configured';
+                    const isEnabled = statsData.betterStackEnabled;
+                    const status = isEnabled ? '🟢 Enabled' : '🔴 Disabled';
+                    const heartbeat = isEnabled ? '✅ Active' : '❌ Not Set';
+                    
+                    betterStackDiv.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Status:</span>
+                            <span class="metric-value">${status}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Heartbeat:</span>
+                            <span class="metric-value">${heartbeat}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Source:</span>
+                            <span class="metric-value">${isEnabled ? 'Environment Variables' : 'Not Configured'}</span>
+                        </div>
+                    `;
+
+                    // Show appropriate section based on configuration
+                    if (isEnabled) {
+                        setupForm.style.display = 'none';
+                        configuredSection.style.display = 'block';
+                        // Only log on first load to avoid spam
+                        if (!window.betterStackInitialLoad) {
+                            addLogEntry('✅ Better Stack monitoring detected');
+                            window.betterStackInitialLoad = true;
+                        }
                     } else {
-                        betterStackStatus = '🔴 Disabled';
-                        heartbeatStatus = '❌ Not Set';
+                        setupForm.style.display = 'block';
+                        configuredSection.style.display = 'none';
+                        // Only log on first load to avoid spam
+                        if (!window.betterStackInitialLoad) {
+                            addLogEntry('ℹ️ Better Stack setup available');
+                            window.betterStackInitialLoad = true;
+                        }
                     }
+                    
                 } catch (error) {
-                    console.error('Error fetching Better Stack config:', error);
+                    betterStackDiv.innerHTML = '<div style="color: #ff4444;">Error loading status</div>';
+                    setupForm.style.display = 'block';
+                    configuredSection.style.display = 'none';
                 }
-                
-                betterStackDiv.innerHTML = `
-                    <div class="metric">
-                        <span class="metric-label">Monitor Status:</span>
-                        <span class="metric-value">${betterStackStatus}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Heartbeat URL:</span>
-                        <span class="metric-value">${heartbeatStatus}</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Monitor URL:</span>
-                        <span class="metric-value">bot-aternos-6ltq.onrender.com</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Health Endpoint:</span>
-                        <span class="metric-value">
-                            <a href="https://bot-aternos-6ltq.onrender.com/health" target="_blank" style="color: #00ff88; text-decoration: none;">/health</a>
-                        </span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Check Frequency:</span>
-                        <span class="metric-value">Every 60s</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">API Key:</span>
-                        <span class="metric-value">qSKMsyh2...VFrF (configured)</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Setup Status:</span>
-                        <span class="metric-value">${betterStackStatus === '🟢 Enabled' ? '✅ Ready for monitoring' : '⚠️ Needs configuration'}</span>
-                    </div>
-                `;
 
-                // Update Anti-AFK config
-                updateAntiAfkConfig();
-
-                // Update last update time
+                // Update timestamp
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
-                // Add log entry for status changes
+                // Log status changes
                 const currentStatus = isOnline ? 'online' : 'offline';
                 if (window.lastKnownStatus && window.lastKnownStatus !== currentStatus) {
-                    addLogEntry(`Bot status changed to: ${statusText}`, currentStatus);
+                    addLogEntry(`Bot status: ${statusText}`);
                 }
                 window.lastKnownStatus = currentStatus;
                 
             } catch (error) {
                 console.error('Error updating status:', error);
-                
-                // Show error state
-                document.getElementById('botStatus').innerHTML = `
-                    <div class="error">❌ Error loading data: ${error.message}</div>
-                `;
-                
-                addLogEntry(`Error updating status: ${error.message}`, 'error');
-            }
-        };
-
-        const updateAntiAfkConfig = async () => {
-            try {
-                const response = await fetch('/stats');
-                const data = await response.json();
-                
-                const antiAfkDiv = document.getElementById('antiAfkConfig');
-                const selectElement = document.getElementById('antiAfkMethodSelect');
-                
-                if (data.antiAfkConfig) {
-                    antiAfkDiv.innerHTML = `
-                        <div class="metric">
-                            <span class="metric-label">Current Method:</span>
-                            <span class="metric-value">${data.antiAfkConfig.method || 'simple'}</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Interval:</span>
-                            <span class="metric-value">${data.antiAfkConfig.interval / 1000}s</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Fallback:</span>
-                            <span class="metric-value">${data.antiAfkConfig.fallbackToKeepalive ? '🟢 Enabled' : '🔴 Disabled'}</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Available Methods:</span>
-                            <span class="metric-value">${data.availableMethods ? data.availableMethods.join(', ') : 'N/A'}</span>
-                        </div>
-                    `;
-                    
-                    // Update select element
-                    if (selectElement && data.antiAfkConfig.method) {
-                        selectElement.value = data.antiAfkConfig.method;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating anti-AFK config:', error);
-            }
-        };
-
-        const changeAntiAfkMethod = async () => {
-            const selectElement = document.getElementById('antiAfkMethodSelect');
-            const newMethod = selectElement.value;
-            
-            try {
-                addLogEntry(`Changing anti-AFK method to: ${newMethod}`);
-                const response = await fetch(`/change-antiafk/${newMethod}`);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert(`✅ Anti-AFK method changed to: ${newMethod}`);
-                    addLogEntry(`Anti-AFK method changed successfully to: ${newMethod}`);
-                    
-                    // Refresh config
-                    setTimeout(updateAntiAfkConfig, 1000);
-                } else {
-                    alert(`❌ Error: ${data.error}`);
-                    addLogEntry(`Failed to change anti-AFK method: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                alert(`❌ Error changing method: ${error.message}`);
-                addLogEntry(`Error changing anti-AFK method: ${error.message}`, 'error');
-            }
-        };
-
-        const testBetterStackConnection = async () => {
-            try {
-                addLogEntry('Testing Better Stack connection...');
-                
-                // Test health endpoint
-                const healthResponse = await fetch('https://bot-aternos-6ltq.onrender.com/health');
-                const healthData = await healthResponse.json();
-                
-                if (healthResponse.ok && healthData.status === 'healthy') {
-                    alert(`✅ Better Stack connection test successful!\n\nHealth Status: ${healthData.status}\nTimestamp: ${healthData.timestamp}\nUptime: ${healthData.uptime}s`);
-                    addLogEntry('Better Stack connection test: ✅ SUCCESS');
-                } else {
-                    alert(`⚠️ Health endpoint responding but status: ${healthData.status}`);
-                    addLogEntry(`Better Stack connection test: ⚠️ Health status: ${healthData.status}`);
-                }
-                
-            } catch (error) {
-                alert(`❌ Better Stack connection test failed: ${error.message}`);
-                addLogEntry(`Better Stack connection test: ❌ FAILED - ${error.message}`, 'error');
+                document.getElementById('botStatus').innerHTML = `<div style="color: #ff4444;">❌ Error: ${error.message}</div>`;
+                addLogEntry(`Error updating status: ${error.message}`);
             }
         };
 
@@ -657,7 +502,7 @@
             }
 
             try {
-                addLogEntry('🚀 Setting up Better Stack monitoring...');
+                addLogEntry('Setting up Better Stack monitoring...');
                 
                 const response = await fetch('/setup-betterstack', {
                     method: 'POST',
@@ -668,31 +513,36 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(`✅ SUCCESS! Better Stack monitoring is now ACTIVE!\n\n🟢 Status: Enabled\n⏱️ Check Frequency: ${data.interval || '60s'}\n📊 Monitor: bot-aternos-6ltq.onrender.com\n\nYour Aternos server is now professionally monitored 24/7!`);
-                    addLogEntry('✅ Better Stack monitoring ENABLED');
-                    
-                    // Clear input and refresh
+                    alert(`✅ SUCCESS! Better Stack monitoring is now ACTIVE!\n\n🟢 Status: Enabled\n⏱️ Frequency: ${data.interval}\n\nYour Aternos server is now professionally monitored 24/7!`);
+                    addLogEntry('✅ Better Stack monitoring enabled via manual setup');
                     document.getElementById('heartbeatUrlInput').value = '';
-                    setTimeout(() => {
-                        updateStatus();
-                        addLogEntry('📊 Dashboard refreshed');
-                    }, 1500);
+                    
+                    // Update UI to show configured state
+                    const setupForm = document.getElementById('setupForm');
+                    const configuredSection = document.getElementById('configuredSection');
+                    setupForm.style.display = 'none';
+                    configuredSection.style.display = 'block';
+                    
+                    setTimeout(updateStatus, 1500);
                 } else {
                     alert(`❌ Setup failed: ${data.error}`);
-                    addLogEntry(`❌ Setup failed: ${data.error}`, 'error');
+                    addLogEntry(`❌ Setup failed: ${data.error}`);
                 }
 
             } catch (error) {
                 alert(`❌ Connection error: ${error.message}`);
-                addLogEntry(`❌ Setup error: ${error.message}`, 'error');
+                addLogEntry(`❌ Setup error: ${error.message}`);
             }
         };
 
-        const setupBetterStack = async () => {
-            alert('💡 Use the setup form above for easier configuration!');
+        const showSetupForm = () => {
+            const setupForm = document.getElementById('setupForm');
+            const configuredSection = document.getElementById('configuredSection');
+            
+            setupForm.style.display = 'block';
+            configuredSection.style.display = 'none';
+            addLogEntry('Setup form opened for URL change');
         };
-
-
 
         const refreshData = () => {
             addLogEntry('Manual refresh triggered');
@@ -700,52 +550,34 @@
         };
 
         const restartBot = async () => {
-            if (!confirm('Bạn có chắc muốn restart bot không?')) {
-                return;
-            }
+            if (!confirm('Restart bot? This will temporarily disconnect.')) return;
             
             try {
                 addLogEntry('Restart command sent');
-                const response = await fetch('/restart');
-                const data = await response.json();
-                
-                alert('Bot restart command sent successfully!');
+                await fetch('/restart');
+                alert('Bot restart initiated!');
                 addLogEntry('Bot restart initiated');
-                
-                // Refresh after 3 seconds
-                setTimeout(() => {
-                    updateStatus();
-                    addLogEntry('Status refreshed after restart');
-                }, 3000);
-                
+                setTimeout(updateStatus, 3000);
             } catch (error) {
                 alert(`Error restarting bot: ${error.message}`);
-                addLogEntry(`Restart failed: ${error.message}`, 'error');
+                addLogEntry(`Restart failed: ${error.message}`);
             }
         };
 
         // Initialize
         addLogEntry('Dashboard initialized');
         updateStatus();
-
-        // Auto-update every 10 seconds
-        updateInterval = setInterval(updateStatus, 10000);
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-            }
-        });
-
-        // Add some initial log entries
+        updateInterval = setInterval(updateStatus, 15000); // Update every 15 seconds
+        
+        // Add initial log entries
         setTimeout(() => {
-            addLogEntry('Monitoring system active');
+            addLogEntry('Auto-refresh enabled (15s interval)');
         }, 1000);
 
-        setTimeout(() => {
-            addLogEntry('Auto-refresh enabled (10s interval)');
-        }, 2000);
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+        });
     </script>
 </body>
 </html> 

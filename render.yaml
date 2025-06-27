@@ -11,6 +11,8 @@ services:
         value: production
       - key: BETTER_STACK_ENABLED
         value: true
+      - key: BETTER_STACK_HEARTBEAT
+        value: https://uptime.betterstack.com/api/v1/heartbeat/67Kr9mNfxkmSA5KAxqz2ncEV
       - key: BETTER_STACK_API_KEY
         value: qSKMsyh2kvpkE7azw334VFrF
     healthCheckPath: /health

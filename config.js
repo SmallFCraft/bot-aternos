@@ -47,7 +47,7 @@ module.exports = {
   // ===== BETTER STACK MONITORING =====
   monitoring: {
     betterStack: {
-      enabled: process.env.BETTER_STACK_ENABLED === "true",
+      enabled: process.env.BETTER_STACK_ENABLED === "true" || false,
       heartbeatUrl: process.env.BETTER_STACK_HEARTBEAT || "",
       apiKey: process.env.BETTER_STACK_API_KEY || "",
       heartbeatInterval: 60000, // 1 phút
@@ -68,7 +68,7 @@ module.exports = {
     crackServer: {
       isOfflineMode: true,
       skipAuthentication: true,
-      username: `AFKBOT_999`,
+      username: `AFKBOT_${Math.floor(Math.random() * 999)}`,
     },
 
     // Preset cho server premium/online
