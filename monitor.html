@@ -294,6 +294,7 @@
                 <div style="margin-top: 15px;">
                     <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack Dashboard</a>
                     <button class="btn" onclick="testBetterStackConnection()">🧪 Test Connection</button>
+                    <button class="btn" onclick="setupBetterStack()">⚙️ Setup Heartbeat</button>
                 </div>
             </div>
 
@@ -454,12 +455,36 @@
                     </div>
                 `;
 
-                // Update Better Stack status  
+                // Update Better Stack status
                 const betterStackDiv = document.getElementById('betterStackStatus');
+                
+                // Check Better Stack configuration from /stats endpoint
+                let betterStackStatus = '🔴 Not Configured';
+                let heartbeatStatus = '❌ Missing';
+                
+                try {
+                    const statsResponse = await fetch('/stats');
+                    const statsData = await statsResponse.json();
+                    
+                    if (statsData.betterStackEnabled) {
+                        betterStackStatus = '🟢 Enabled';
+                        heartbeatStatus = '✅ Configured';
+                    } else {
+                        betterStackStatus = '🔴 Disabled';
+                        heartbeatStatus = '❌ Not Set';
+                    }
+                } catch (error) {
+                    console.error('Error fetching Better Stack config:', error);
+                }
+                
                 betterStackDiv.innerHTML = `
                     <div class="metric">
                         <span class="metric-label">Monitor Status:</span>
-                        <span class="metric-value">${data.betterStackEnabled ? '🟢 Enabled' : '🔴 Disabled'}</span>
+                        <span class="metric-value">${betterStackStatus}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Heartbeat URL:</span>
+                        <span class="metric-value">${heartbeatStatus}</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Monitor URL:</span>
@@ -478,6 +503,10 @@
                     <div class="metric">
                         <span class="metric-label">API Key:</span>
                         <span class="metric-value">qSKMsyh2...VFrF (configured)</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Setup Status:</span>
+                        <span class="metric-value">${betterStackStatus === '🟢 Enabled' ? '✅ Ready for monitoring' : '⚠️ Needs configuration'}</span>
                     </div>
                 `;
 
@@ -588,6 +617,60 @@
             } catch (error) {
                 alert(`❌ Better Stack connection test failed: ${error.message}`);
                 addLogEntry(`Better Stack connection test: ❌ FAILED - ${error.message}`, 'error');
+            }
+        };
+
+        const setupBetterStack = async () => {
+            const heartbeatUrl = prompt(`🔑 Enter Better Stack Heartbeat URL:
+
+Example: https://betterstack.com/api/v1/heartbeat/ABC123XYZ
+
+To get this URL:
+1. Go to betterstack.com
+2. Create a Heartbeat Monitor
+3. Copy the heartbeat URL
+
+Enter your heartbeat URL:`);
+
+            if (!heartbeatUrl) {
+                return;
+            }
+
+            if (!heartbeatUrl.includes('betterstack.com/api/v1/heartbeat/')) {
+                alert('❌ Invalid heartbeat URL format!\n\nExpected format:\nhttps://betterstack.com/api/v1/heartbeat/YOUR_KEY');
+                return;
+            }
+
+            try {
+                addLogEntry('Setting up Better Stack heartbeat...');
+                
+                const response = await fetch('/setup-betterstack', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ heartbeatUrl: heartbeatUrl })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(`✅ Better Stack setup successful!\n\nEnabled: ${data.enabled}\nInterval: ${data.interval}\n\nMonitoring is now active!`);
+                    addLogEntry('Better Stack setup: ✅ SUCCESS');
+                    
+                    // Refresh status
+                    setTimeout(() => {
+                        updateStatus();
+                        addLogEntry('Status refreshed after Better Stack setup');
+                    }, 2000);
+                } else {
+                    alert(`❌ Setup failed: ${data.error}`);
+                    addLogEntry(`Better Stack setup: ❌ FAILED - ${data.error}`, 'error');
+                }
+
+            } catch (error) {
+                alert(`❌ Setup error: ${error.message}`);
+                addLogEntry(`Better Stack setup: ❌ ERROR - ${error.message}`, 'error');
             }
         };
 

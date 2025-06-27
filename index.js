@@ -120,6 +120,59 @@ app.get("/change-antiafk/:method", (req, res) => {
   });
 });
 
+app.post("/setup-betterstack", (req, res) => {
+  const { heartbeatUrl } = req.body;
+
+  if (!heartbeatUrl) {
+    return res.status(400).json({
+      error: "Heartbeat URL is required",
+      example: "https://betterstack.com/api/v1/heartbeat/YOUR_KEY",
+    });
+  }
+
+  // Update Better Stack configuration
+  BETTER_STACK.heartbeatUrl = heartbeatUrl;
+  BETTER_STACK.enabled = true;
+
+  // Update config
+  config.monitoring.betterStack.heartbeatUrl = heartbeatUrl;
+  config.monitoring.betterStack.enabled = true;
+
+  console.log(`💗 Better Stack heartbeat URL configured: ${heartbeatUrl}`);
+
+  // Start heartbeat if not already running
+  if (!betterStackInterval) {
+    betterStackInterval = setInterval(
+      sendBetterStackHeartbeat,
+      BETTER_STACK.interval
+    );
+    console.log(
+      `💗 Better Stack heartbeat started (${
+        BETTER_STACK.interval / 1000
+      }s interval)`
+    );
+  }
+
+  res.json({
+    message: "Better Stack configured successfully",
+    enabled: true,
+    heartbeatUrl: heartbeatUrl,
+    interval: BETTER_STACK.interval / 1000 + "s",
+  });
+});
+
+app.get("/betterstack-status", (req, res) => {
+  res.json({
+    enabled: BETTER_STACK.enabled,
+    heartbeatUrl: BETTER_STACK.heartbeatUrl ? "✅ Configured" : "❌ Not Set",
+    heartbeatUrlValue: BETTER_STACK.heartbeatUrl,
+    apiKey: BETTER_STACK.apiKey ? "✅ Configured" : "❌ Not Set",
+    interval: BETTER_STACK.interval / 1000 + "s",
+    lastHeartbeat: betterStackInterval ? "🟢 Active" : "🔴 Inactive",
+    instructions: "POST /setup-betterstack with heartbeatUrl to configure",
+  });
+});
+
 // Dashboard HTML
 app.get("/dashboard", (req, res) => {
   const htmlPath = path.join(__dirname, "monitor.html");
