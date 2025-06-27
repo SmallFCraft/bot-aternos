@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Aternos Bedrock Bot Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            color: #00ff88;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-offline {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #cccccc;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: #000000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 5px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #00cc6a, #00aa55);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc3333);
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #cc3333, #aa2222);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #cccccc;
+        }
+
+        .uptime-bar {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .uptime-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .server-info {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+        }
+
+        .better-stack-info {
+            background: rgba(255, 165, 0, 0.1);
+            border-left: 4px solid #ffa500;
+        }
+
+        .loading {
+            text-align: center;
+            color: #cccccc;
+            font-style: italic;
+        }
+
+        .error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Aternos Bedrock Bot Monitor</h1>
+            <p>Keep-Alive Bot cho server Meo_MC403-IFBX</p>
+        </div>
+
+        <div class="grid">
+            <!-- Bot Status Card -->
+            <div class="card" id="statusCard">
+                <h3>📊 Bot Status</h3>
+                <div id="botStatus" class="loading">Đang tải...</div>
+            </div>
+
+            <!-- Server Info Card -->
+            <div class="card server-info">
+                <h3>🎮 Server Information</h3>
+                <div class="metric">
+                    <span class="metric-label">Server:</span>
+                    <span class="metric-value">Meo_MC403-IFBX.aternos.me:33122</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Type:</span>
+                    <span class="metric-value">Bedrock Edition</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Version:</span>
+                    <span class="metric-value">1.21.71.01</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Aternos Link:</span>
+                    <span class="metric-value">
+                        <a href="https://add.aternos.org/Meo_MC403-IFBX" target="_blank" style="color: #00ff88; text-decoration: none;">add.aternos.org/Meo_MC403-IFBX</a>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card">
+                <h3>📈 Statistics</h3>
+                <div id="statisticsContent" class="loading">Đang tải...</div>
+            </div>
+
+            <!-- Anti-AFK Configuration -->
+            <div class="card">
+                <h3>🛡️ Anti-AFK Configuration</h3>
+                <div id="antiAfkConfig" class="loading">Đang tải...</div>
+                <div style="margin-top: 15px;">
+                    <select id="antiAfkMethodSelect" class="btn" style="margin-right: 10px;">
+                        <option value="simple">Simple (Safest)</option>
+                        <option value="ping">Connection Ping</option>
+                        <option value="rotation">Rotation Only</option>
+                        <option value="minimal_movement">Minimal Movement</option>
+                    </select>
+                    <button class="btn" onclick="changeAntiAfkMethod()">🔧 Change Method</button>
+                </div>
+            </div>
+
+            <!-- Better Stack Card -->
+            <div class="card better-stack-info">
+                <h3>💗 Better Stack Monitoring</h3>
+                <div id="betterStackStatus" class="loading">Đang tải...</div>
+                <div style="margin-top: 15px;">
+                    <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+            <h3>⚙️ Controls</h3>
+            <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn btn-danger" onclick="restartBot()">🚨 Restart Bot</button>
+            <a href="/health" target="_blank" class="btn">❤️ Health Check</a>
+            <a href="/stats" target="_blank" class="btn">📊 Raw Stats</a>
+        </div>
+
+        <!-- Live Logs -->
+        <div class="card">
+            <h3>📋 Live Status Log</h3>
+            <div class="log-container" id="liveLog">
+                <div class="log-entry">Khởi tạo dashboard...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🤖 Aternos Bedrock Keep-Alive Bot | Made with ❤️ for 24/7 uptime</p>
+            <p>Last updated: <span id="lastUpdate">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+        let logEntries = [];
+
+        const addLogEntry = (message, type = 'info') => {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            logEntries.unshift(entry);
+            
+            // Keep only last 20 entries
+            if (logEntries.length > 20) {
+                logEntries = logEntries.slice(0, 20);
+            }
+            
+            updateLiveLog();
+        };
+
+        const updateLiveLog = () => {
+            const logContainer = document.getElementById('liveLog');
+            logContainer.innerHTML = logEntries.map(entry => 
+                `<div class="log-entry">${entry}</div>`
+            ).join('');
+        };
+
+        const formatUptime = (seconds) => {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (days > 0) {
+                return `${days}d ${hours}h ${minutes}m ${secs}s`;
+            } else if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        };
+
+        const updateStatus = async () => {
+            try {
+                const response = await fetch('/');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update bot status
+                const statusCard = document.getElementById('statusCard');
+                const botStatusDiv = document.getElementById('botStatus');
+                
+                const isOnline = data.botStatus.connected;
+                const statusColor = isOnline ? 'status-online' : 'status-offline';
+                const statusText = isOnline ? 'Online' : 'Offline';
+                
+                statusCard.style.borderLeft = `4px solid ${isOnline ? '#00ff88' : '#ff4444'}`;
+                
+                botStatusDiv.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Status:</span>
+                        <span class="metric-value">
+                            <span class="status-indicator ${statusColor}"></span>
+                            ${statusText}
+                        </span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Uptime:</span>
+                        <span class="metric-value">${formatUptime(data.botStatus.uptime)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Connected:</span>
+                        <span class="metric-value">${data.botStatus.lastConnected ? new Date(data.botStatus.lastConnected).toLocaleString() : 'Never'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Reconnect Attempts:</span>
+                        <span class="metric-value">${data.botStatus.reconnectAttempts}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Anti-AFK:</span>
+                        <span class="metric-value">${data.botStatus.antiAfkActive ? '🟢 Active' : '🔴 Inactive'}</span>
+                    </div>
+                `;
+
+                // Update statistics
+                const statsDiv = document.getElementById('statisticsContent');
+                statsDiv.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Packets Sent:</span>
+                        <span class="metric-value">${data.botStatus.packetsSent.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Packets Received:</span>
+                        <span class="metric-value">${data.botStatus.packetsReceived.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Username:</span>
+                        <span class="metric-value">${data.serverInfo.username}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Disconnected:</span>
+                        <span class="metric-value">${data.botStatus.lastDisconnected ? new Date(data.botStatus.lastDisconnected).toLocaleString() : 'Never'}</span>
+                    </div>
+                `;
+
+                // Update Better Stack status
+                const betterStackDiv = document.getElementById('betterStackStatus');
+                betterStackDiv.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Monitoring:</span>
+                        <span class="metric-value">${data.serverInfo ? '🟢 Active' : '🔴 Disabled'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Health Endpoint:</span>
+                        <span class="metric-value">/health</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Heartbeat:</span>
+                        <span class="metric-value">Every 60s</span>
+                    </div>
+                `;
+
+                // Update Anti-AFK config
+                updateAntiAfkConfig();
+
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                
+                // Add log entry for status changes
+                const currentStatus = isOnline ? 'online' : 'offline';
+                if (window.lastKnownStatus && window.lastKnownStatus !== currentStatus) {
+                    addLogEntry(`Bot status changed to: ${statusText}`, currentStatus);
+                }
+                window.lastKnownStatus = currentStatus;
+                
+            } catch (error) {
+                console.error('Error updating status:', error);
+                
+                // Show error state
+                document.getElementById('botStatus').innerHTML = `
+                    <div class="error">❌ Error loading data: ${error.message}</div>
+                `;
+                
+                addLogEntry(`Error updating status: ${error.message}`, 'error');
+            }
+        };
+
+        const updateAntiAfkConfig = async () => {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+                
+                const antiAfkDiv = document.getElementById('antiAfkConfig');
+                const selectElement = document.getElementById('antiAfkMethodSelect');
+                
+                if (data.antiAfkConfig) {
+                    antiAfkDiv.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Current Method:</span>
+                            <span class="metric-value">${data.antiAfkConfig.method || 'simple'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Interval:</span>
+                            <span class="metric-value">${data.antiAfkConfig.interval / 1000}s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Fallback:</span>
+                            <span class="metric-value">${data.antiAfkConfig.fallbackToKeepalive ? '🟢 Enabled' : '🔴 Disabled'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Available Methods:</span>
+                            <span class="metric-value">${data.availableMethods ? data.availableMethods.join(', ') : 'N/A'}</span>
+                        </div>
+                    `;
+                    
+                    // Update select element
+                    if (selectElement && data.antiAfkConfig.method) {
+                        selectElement.value = data.antiAfkConfig.method;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating anti-AFK config:', error);
+            }
+        };
+
+        const changeAntiAfkMethod = async () => {
+            const selectElement = document.getElementById('antiAfkMethodSelect');
+            const newMethod = selectElement.value;
+            
+            try {
+                addLogEntry(`Changing anti-AFK method to: ${newMethod}`);
+                const response = await fetch(`/change-antiafk/${newMethod}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Anti-AFK method changed to: ${newMethod}`);
+                    addLogEntry(`Anti-AFK method changed successfully to: ${newMethod}`);
+                    
+                    // Refresh config
+                    setTimeout(updateAntiAfkConfig, 1000);
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                    addLogEntry(`Failed to change anti-AFK method: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                alert(`❌ Error changing method: ${error.message}`);
+                addLogEntry(`Error changing anti-AFK method: ${error.message}`, 'error');
+            }
+        };
+
+
+
+        const refreshData = () => {
+            addLogEntry('Manual refresh triggered');
+            updateStatus();
+        };
+
+        const restartBot = async () => {
+            if (!confirm('Bạn có chắc muốn restart bot không?')) {
+                return;
+            }
+            
+            try {
+                addLogEntry('Restart command sent');
+                const response = await fetch('/restart');
+                const data = await response.json();
+                
+                alert('Bot restart command sent successfully!');
+                addLogEntry('Bot restart initiated');
+                
+                // Refresh after 3 seconds
+                setTimeout(() => {
+                    updateStatus();
+                    addLogEntry('Status refreshed after restart');
+                }, 3000);
+                
+            } catch (error) {
+                alert(`Error restarting bot: ${error.message}`);
+                addLogEntry(`Restart failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize
+        addLogEntry('Dashboard initialized');
+        updateStatus();
+
+        // Auto-update every 10 seconds
+        updateInterval = setInterval(updateStatus, 10000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+
+        // Add some initial log entries
+        setTimeout(() => {
+            addLogEntry('Monitoring system active');
+        }, 1000);
+
+        setTimeout(() => {
+            addLogEntry('Auto-refresh enabled (10s interval)');
+        }, 2000);
+    </script>
+</body>
+</html> 
