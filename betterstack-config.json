@@ -1,7 +1,0 @@
-{
-  "status": "READY_TO_SETUP",
-  "healthCheckUrl": "https://bot-aternos-6ltq.onrender.com/health",
-  "dashboardUrl": "https://bot-aternos-6ltq.onrender.com/dashboard",
-  "setupInstructions": "Paste your Better Stack heartbeat URL from betterstack.com",
-  "exampleHeartbeatUrl": "https://betterstack.com/api/v1/heartbeat/YOUR_KEY_HERE"
-}
