@@ -130,34 +130,53 @@ app.post("/setup-betterstack", (req, res) => {
     });
   }
 
-  // Update Better Stack configuration
+  if (!heartbeatUrl.includes("betterstack.com/api/v1/heartbeat/")) {
+    return res.status(400).json({
+      error: "Invalid heartbeat URL format",
+      expected: "https://betterstack.com/api/v1/heartbeat/YOUR_KEY",
+    });
+  }
+
+  // Save configuration to file
+  const betterstackConfig = {
+    status: "ENABLED",
+    heartbeatUrl: heartbeatUrl,
+    healthCheckUrl: "https://bot-aternos-6ltq.onrender.com/health",
+    dashboardUrl: "https://bot-aternos-6ltq.onrender.com/dashboard",
+    setupDate: new Date().toISOString(),
+    interval: "60s",
+  };
+
+  require("fs").writeFileSync(
+    "betterstack-config.json",
+    JSON.stringify(betterstackConfig, null, 2)
+  );
+
+  // Update runtime configuration
   BETTER_STACK.heartbeatUrl = heartbeatUrl;
   BETTER_STACK.enabled = true;
-
-  // Update config
   config.monitoring.betterStack.heartbeatUrl = heartbeatUrl;
   config.monitoring.betterStack.enabled = true;
 
-  console.log(`💗 Better Stack heartbeat URL configured: ${heartbeatUrl}`);
+  console.log(`🟢 Better Stack monitoring ENABLED: ${heartbeatUrl}`);
 
-  // Start heartbeat if not already running
+  // Start heartbeat immediately
   if (!betterStackInterval) {
     betterStackInterval = setInterval(
       sendBetterStackHeartbeat,
       BETTER_STACK.interval
     );
     console.log(
-      `💗 Better Stack heartbeat started (${
-        BETTER_STACK.interval / 1000
-      }s interval)`
+      `💗 Heartbeat started (${BETTER_STACK.interval / 1000}s interval)`
     );
   }
 
   res.json({
-    message: "Better Stack configured successfully",
+    success: true,
     enabled: true,
     heartbeatUrl: heartbeatUrl,
     interval: BETTER_STACK.interval / 1000 + "s",
+    message: "🟢 Better Stack monitoring is now ACTIVE!",
   });
 });
 

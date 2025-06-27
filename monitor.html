@@ -290,11 +290,34 @@
             <!-- Better Stack Card -->
             <div class="card better-stack-info">
                 <h3>💗 Better Stack Monitoring</h3>
+                
+                <!-- Simple Setup Section -->
+                <div style="background: linear-gradient(45deg, #1e3a8a, #7c3aed); padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 2px solid #3b82f6;">
+                    <h4 style="color: #93c5fd; margin-bottom: 15px; font-size: 1.1em;">🚀 3-Step Setup (2 minutes)</h4>
+                    
+                    <div style="margin-bottom: 15px; color: #ddd6fe;">
+                        <div style="margin-bottom: 8px;"><strong>1.</strong> Go to <a href="https://betterstack.com" target="_blank" style="color: #60a5fa; text-decoration: underline;">betterstack.com</a> → Sign up FREE</div>
+                        <div style="margin-bottom: 8px;"><strong>2.</strong> Create Monitor → <strong>Heartbeat Monitor</strong> → Copy URL</div>
+                        <div><strong>3.</strong> Paste URL below → Click Setup → DONE!</div>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <input 
+                            type="text" 
+                            id="heartbeatUrlInput" 
+                            placeholder="https://betterstack.com/api/v1/heartbeat/YOUR_KEY"
+                            style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #374151; background: rgba(0,0,0,0.5); color: white; font-size: 14px;"
+                        >
+                    </div>
+                    <button onclick="quickSetupHeartbeat()" style="width: 100%; background: linear-gradient(45deg, #059669, #0d9488); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;">
+                        ⚙️ Setup Monitor (Instant)
+                    </button>
+                </div>
+
                 <div id="betterStackStatus" class="loading">Đang tải...</div>
                 <div style="margin-top: 15px;">
-                    <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack Dashboard</a>
-                    <button class="btn" onclick="testBetterStackConnection()">🧪 Test Connection</button>
-                    <button class="btn" onclick="setupBetterStack()">⚙️ Setup Heartbeat</button>
+                    <a href="https://betterstack.com" target="_blank" class="btn">🔗 Better Stack</a>
+                    <button class="btn" onclick="testBetterStackConnection()">🧪 Test</button>
                 </div>
             </div>
 
@@ -620,58 +643,53 @@
             }
         };
 
-        const setupBetterStack = async () => {
-            const heartbeatUrl = prompt(`🔑 Enter Better Stack Heartbeat URL:
-
-Example: https://betterstack.com/api/v1/heartbeat/ABC123XYZ
-
-To get this URL:
-1. Go to betterstack.com
-2. Create a Heartbeat Monitor
-3. Copy the heartbeat URL
-
-Enter your heartbeat URL:`);
-
+        const quickSetupHeartbeat = async () => {
+            const heartbeatUrl = document.getElementById('heartbeatUrlInput').value.trim();
+            
             if (!heartbeatUrl) {
+                alert('❌ Please enter your Better Stack heartbeat URL');
                 return;
             }
 
             if (!heartbeatUrl.includes('betterstack.com/api/v1/heartbeat/')) {
-                alert('❌ Invalid heartbeat URL format!\n\nExpected format:\nhttps://betterstack.com/api/v1/heartbeat/YOUR_KEY');
+                alert('❌ Invalid URL format!\n\nExpected: https://betterstack.com/api/v1/heartbeat/YOUR_KEY');
                 return;
             }
 
             try {
-                addLogEntry('Setting up Better Stack heartbeat...');
+                addLogEntry('🚀 Setting up Better Stack monitoring...');
                 
                 const response = await fetch('/setup-betterstack', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ heartbeatUrl: heartbeatUrl })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(`✅ Better Stack setup successful!\n\nEnabled: ${data.enabled}\nInterval: ${data.interval}\n\nMonitoring is now active!`);
-                    addLogEntry('Better Stack setup: ✅ SUCCESS');
+                    alert(`✅ SUCCESS! Better Stack monitoring is now ACTIVE!\n\n🟢 Status: Enabled\n⏱️ Check Frequency: ${data.interval || '60s'}\n📊 Monitor: bot-aternos-6ltq.onrender.com\n\nYour Aternos server is now professionally monitored 24/7!`);
+                    addLogEntry('✅ Better Stack monitoring ENABLED');
                     
-                    // Refresh status
+                    // Clear input and refresh
+                    document.getElementById('heartbeatUrlInput').value = '';
                     setTimeout(() => {
                         updateStatus();
-                        addLogEntry('Status refreshed after Better Stack setup');
-                    }, 2000);
+                        addLogEntry('📊 Dashboard refreshed');
+                    }, 1500);
                 } else {
                     alert(`❌ Setup failed: ${data.error}`);
-                    addLogEntry(`Better Stack setup: ❌ FAILED - ${data.error}`, 'error');
+                    addLogEntry(`❌ Setup failed: ${data.error}`, 'error');
                 }
 
             } catch (error) {
-                alert(`❌ Setup error: ${error.message}`);
-                addLogEntry(`Better Stack setup: ❌ ERROR - ${error.message}`, 'error');
+                alert(`❌ Connection error: ${error.message}`);
+                addLogEntry(`❌ Setup error: ${error.message}`, 'error');
             }
+        };
+
+        const setupBetterStack = async () => {
+            alert('💡 Use the setup form above for easier configuration!');
         };
 
 
