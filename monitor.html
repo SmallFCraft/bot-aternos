@@ -6,208 +6,209 @@
     <title>🤖 Aternos Bot Monitor</title>
     <style>
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #00ff88, #00cc6a);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #00ff88, #00cc6a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
 
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease;
-        }
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
+.card:hover {
+    transform: translateY(-5px);
+}
 
-        .card h3 {
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            color: #00ff88;
-        }
+.card h3 {
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    color: #00ff88;
+}
 
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+}
 
-        .status-online {
-            background: #00ff88;
-            box-shadow: 0 0 10px #00ff88;
-        }
+.status-online {
+    background: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+}
 
-        .status-offline {
-            background: #ff4444;
-            box-shadow: 0 0 10px #ff4444;
-        }
+.status-offline {
+    background: #ff4444;
+    box-shadow: 0 0 10px #ff4444;
+}
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
 
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+.metric {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-        .metric:last-child {
-            border-bottom: none;
-        }
+.metric:last-child {
+    border-bottom: none;
+}
 
-        .metric-label {
-            color: #cccccc;
-        }
+.metric-label {
+    color: #cccccc;
+}
 
-        .metric-value {
-            font-weight: bold;
-            color: #ffffff;
-        }
+.metric-value {
+    font-weight: bold;
+    color: #ffffff;
+}
 
-        .btn {
-            background: linear-gradient(45deg, #00ff88, #00cc6a);
-            color: #000000;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            margin: 5px;
-            display: inline-block;
-            text-decoration: none;
-        }
+.btn {
+    background: linear-gradient(45deg, #00ff88, #00cc6a);
+    color: #000000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin: 5px;
+    display: inline-block;
+    text-decoration: none;
+}
 
-        .btn:hover {
-            background: linear-gradient(45deg, #00cc6a, #00aa55);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
-        }
+.btn:hover {
+    background: linear-gradient(45deg, #00cc6a, #00aa55);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+}
 
-        .btn-danger {
-            background: linear-gradient(45deg, #ff4444, #cc3333);
-            color: #ffffff;
-        }
+.btn-danger {
+    background: linear-gradient(45deg, #ff4444, #cc3333);
+    color: #ffffff;
+}
 
-        .setup-form {
-            background: linear-gradient(45deg, #1e3a8a, #7c3aed);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 2px solid #3b82f6;
-        }
+.setup-form {
+    background: linear-gradient(45deg, #1e3a8a, #7c3aed);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid #3b82f6;
+}
 
-        .setup-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #374151;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
+.setup-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #374151;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
 
-        .setup-btn {
-            width: 100%;
-            background: linear-gradient(45deg, #059669, #0d9488);
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-        }
+.setup-btn {
+    width: 100%;
+    background: linear-gradient(45deg, #059669, #0d9488);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+}
 
-        .status-frame {
-            width: 100%;
-            height: 400px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-        }
+.status-frame {
+    width: 100%;
+    height: 400px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
 
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px 0;
-        }
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+}
 
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #cccccc;
-        }
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #cccccc;
+}
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .status-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .controls {
-                justify-content: center;
-            }
-        }
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2em;
+    }
+    
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls {
+        justify-content: center;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -218,6 +219,18 @@
             <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                 <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
             </p>
+            
+            <!-- Compliance Warning -->
+            <div style="background: linear-gradient(45deg, #dc2626, #b91c1c); margin-top: 15px; padding: 12px; border-radius: 8px; border: 2px solid #f87171;">
+                <div style="color: white; font-weight: bold; margin-bottom: 5px;">⚠️ ATERNOS POLICY WARNING</div>
+                <div style="color: #fecaca; font-size: 13px; margin-bottom: 8px;">This bot may violate Aternos Terms of Service</div>
+                <button onclick="showComplianceInfo()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    📋 View Policy Details
+                </button>
+                <button onclick="showAlternatives()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;">
+                    🔗 Show Alternatives
+                </button>
+            </div>
         </div>
 
         <div class="status-grid">
@@ -241,6 +254,10 @@
                 <div class="metric">
                     <span class="metric-label">Username:</span>
                     <span class="metric-value" id="botUsername">Loading...</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Position:</span>
+                    <span class="metric-value" id="botPosition">Loading...</span>
                 </div>
             </div>
 
@@ -308,33 +325,124 @@
             <button class="btn btn-danger" onclick="restartBot()">🚨 Restart Bot</button>
             <a href="/health" target="_blank" class="btn">❤️ Health</a>
             <a href="/stats" target="_blank" class="btn">📊 Raw Data</a>
+            <a href="/compliance" target="_blank" class="btn" style="background: linear-gradient(45deg, #dc2626, #b91c1c);">⚠️ Policy Info</a>
         </div>
 
         <!-- Live Status Log -->
         <div class="card">
-            <h3>📋 Live Status Log</h3>
-            <div id="liveLog" style="background: #1a1a1a; border-radius: 10px; padding: 15px; max-height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #cccccc;">
-                <div>Initializing dashboard...</div>
+            <h3>📋 Live Server Log</h3>
+            <div style="margin-bottom: 10px; color: #cccccc; font-size: 14px;">
+                <span id="logConnectionStatus">🟡 Connecting to live stream...</span>
+                <button onclick="toggleLogStream()" id="logToggleBtn" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px;">
+                    ⏸️ Pause
+                </button>
+                <button onclick="clearLog()" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;">
+                    🗑️ Clear
+                </button>
+            </div>
+            <div id="liveLog" style="background: #1a1a1a; border-radius: 10px; padding: 15px; max-height: 250px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #cccccc; border: 1px solid #333;">
+                <div style="color: #666;">Connecting to live log stream...</div>
             </div>
         </div>
 
         <div class="footer">
             <p>🤖 Aternos Bedrock Keep-Alive Bot | Updated: <span id="lastUpdate">-</span></p>
+            <p style="font-size: 12px; color: #888; margin-top: 5px;">
+                ⚠️ Use at your own risk - Consider migrating to bot-friendly hosting
+            </p>
         </div>
     </div>
 
     <script>
         let updateInterval;
         let logEntries = [];
+        let eventSource = null;
+        let logStreamActive = true;
 
-        const addLogEntry = (message) => {
-            const timestamp = new Date().toLocaleTimeString();
-            const entry = `[${timestamp}] ${message}`;
+        // Live log streaming from server
+        const connectLogStream = () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const statusElement = document.getElementById('logConnectionStatus');
+            statusElement.textContent = '🟡 Connecting to live stream...';
+            statusElement.style.color = '#fbbf24';
+
+            eventSource = new EventSource('/logs/stream');
+            
+            eventSource.onopen = () => {
+                statusElement.textContent = '🟢 Connected to live stream';
+                statusElement.style.color = '#10b981';
+                addLocalLogEntry('Dashboard connected to live server log');
+            };
+            
+            eventSource.onmessage = (event) => {
+                if (!logStreamActive) return;
+                
+                try {
+                    const logData = JSON.parse(event.data);
+                    addServerLogEntry(logData);
+                } catch (error) {
+                    console.error('Error parsing log data:', error);
+                }
+            };
+            
+            eventSource.onerror = () => {
+                statusElement.textContent = '🔴 Connection lost - Retrying...';
+                statusElement.style.color = '#ef4444';
+                
+                // Auto-reconnect after 3 seconds
+                setTimeout(() => {
+                    if (logStreamActive) {
+                        connectLogStream();
+                    }
+                }, 3000);
+            };
+        };
+
+        const addServerLogEntry = (logData) => {
+            const timestamp = new Date(logData.timestamp).toLocaleTimeString();
+            const typeIcon = logData.type === 'error' ? '❌' : logData.type === 'warn' ? '⚠️' : 'ℹ️';
+            const typeColor = logData.type === 'error' ? '#ef4444' : logData.type === 'warn' ? '#f59e0b' : '#10b981';
+            
+            const entry = {
+                timestamp,
+                message: logData.message,
+                type: logData.type,
+                icon: typeIcon,
+                color: typeColor,
+                source: 'server'
+            };
+            
             logEntries.unshift(entry);
             
-            // Keep only last 15 entries
-            if (logEntries.length > 15) {
-                logEntries = logEntries.slice(0, 15);
+            // Keep only last 25 entries
+            if (logEntries.length > 25) {
+                logEntries = logEntries.slice(0, 25);
+            }
+            
+            updateLiveLog();
+        };
+
+        const addLocalLogEntry = (message, type = 'info') => {
+            const timestamp = new Date().toLocaleTimeString();
+            const typeIcon = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : 'ℹ️';
+            const typeColor = type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#6b7280';
+            
+            const entry = {
+                timestamp,
+                message,
+                type,
+                icon: typeIcon,
+                color: typeColor,
+                source: 'dashboard'
+            };
+            
+            logEntries.unshift(entry);
+            
+            if (logEntries.length > 25) {
+                logEntries = logEntries.slice(0, 25);
             }
             
             updateLiveLog();
@@ -343,8 +451,42 @@
         const updateLiveLog = () => {
             const logContainer = document.getElementById('liveLog');
             logContainer.innerHTML = logEntries.map(entry => 
-                `<div style="margin: 2px 0;">${entry}</div>`
+                `<div style="margin: 3px 0; color: ${entry.color}; opacity: ${entry.source === 'dashboard' ? '0.7' : '1'};">
+                    ${entry.icon} [${entry.timestamp}] ${entry.message}
+                    ${entry.source === 'dashboard' ? ' <span style="color: #666; font-size: 10px;">(local)</span>' : ''}
+                </div>`
             ).join('');
+            
+            // Auto-scroll to top (newest entries)
+            logContainer.scrollTop = 0;
+        };
+
+        const toggleLogStream = () => {
+            logStreamActive = !logStreamActive;
+            const btn = document.getElementById('logToggleBtn');
+            const status = document.getElementById('logConnectionStatus');
+            
+            if (logStreamActive) {
+                btn.textContent = '⏸️ Pause';
+                btn.style.background = 'rgba(255,255,255,0.1)';
+                if (eventSource) {
+                    status.textContent = '🟢 Connected to live stream';
+                    status.style.color = '#10b981';
+                }
+                addLocalLogEntry('Live log stream resumed');
+            } else {
+                btn.textContent = '▶️ Resume';
+                btn.style.background = 'rgba(34, 197, 94, 0.3)';
+                status.textContent = '⏸️ Live stream paused';
+                status.style.color = '#f59e0b';
+                addLocalLogEntry('Live log stream paused');
+            }
+        };
+
+        const clearLog = () => {
+            logEntries = [];
+            updateLiveLog();
+            addLocalLogEntry('Log cleared');
         };
 
         const formatUptime = (seconds) => {
@@ -389,6 +531,14 @@
                         </span>
                     </div>
                     <div class="metric">
+                        <span class="metric-label">Spawned:</span>
+                        <span class="metric-value">${data.botStatus.hasSpawned ? '✅ Yes' : '❌ No'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Server Communication:</span>
+                        <span class="metric-value">${data.botStatus.serverCommunicationVerified ? '✅ Verified' : '⚠️ Not Verified'}</span>
+                    </div>
+                    <div class="metric">
                         <span class="metric-label">Uptime:</span>
                         <span class="metric-value">${formatUptime(data.botStatus.uptime)}</span>
                     </div>
@@ -396,10 +546,16 @@
                         <span class="metric-label">Anti-AFK:</span>
                         <span class="metric-value">${data.botStatus.antiAfkActive ? '🟢 Active' : '🔴 Inactive'}</span>
                     </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Movement:</span>
+                        <span class="metric-value">${data.botStatus.lastMovement ? new Date(data.botStatus.lastMovement).toLocaleTimeString() : 'Never'}</span>
+                    </div>
                 `;
 
-                // Update username
+                // Update username and position
                 document.getElementById('botUsername').textContent = data.serverInfo.username;
+                const pos = data.botStatus.currentPosition;
+                document.getElementById('botPosition').textContent = `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}`;
 
                 // Update statistics
                 const statsDiv = document.getElementById('statisticsContent');
@@ -415,6 +571,10 @@
                     <div class="metric">
                         <span class="metric-label">Reconnects:</span>
                         <span class="metric-value">${data.botStatus.reconnectAttempts}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Risk Level:</span>
+                        <span class="metric-value" style="color: #ef4444;">${data.compliance.riskLevel}</span>
                     </div>
                 `;
 
@@ -450,17 +610,13 @@
                     if (isEnabled) {
                         setupForm.style.display = 'none';
                         configuredSection.style.display = 'block';
-                        // Only log on first load to avoid spam
                         if (!window.betterStackInitialLoad) {
-                            addLogEntry('✅ Better Stack monitoring detected');
                             window.betterStackInitialLoad = true;
                         }
                     } else {
                         setupForm.style.display = 'block';
                         configuredSection.style.display = 'none';
-                        // Only log on first load to avoid spam
                         if (!window.betterStackInitialLoad) {
-                            addLogEntry('ℹ️ Better Stack setup available');
                             window.betterStackInitialLoad = true;
                         }
                     }
@@ -477,14 +633,14 @@
                 // Log status changes
                 const currentStatus = isOnline ? 'online' : 'offline';
                 if (window.lastKnownStatus && window.lastKnownStatus !== currentStatus) {
-                    addLogEntry(`Bot status: ${statusText}`);
+                    // Status change will be logged via SSE stream from server
                 }
                 window.lastKnownStatus = currentStatus;
                 
             } catch (error) {
                 console.error('Error updating status:', error);
                 document.getElementById('botStatus').innerHTML = `<div style="color: #ff4444;">❌ Error: ${error.message}</div>`;
-                addLogEntry(`Error updating status: ${error.message}`);
+                addLocalLogEntry(`Error updating status: ${error.message}`, 'error');
             }
         };
 
@@ -502,7 +658,7 @@
             }
 
             try {
-                addLogEntry('Setting up Better Stack monitoring...');
+                addLocalLogEntry('Setting up Better Stack monitoring...');
                 
                 const response = await fetch('/setup-betterstack', {
                     method: 'POST',
@@ -514,7 +670,6 @@
 
                 if (response.ok) {
                     alert(`✅ SUCCESS! Better Stack monitoring is now ACTIVE!\n\n🟢 Status: Enabled\n⏱️ Frequency: ${data.interval}\n\nYour Aternos server is now professionally monitored 24/7!`);
-                    addLogEntry('✅ Better Stack monitoring enabled via manual setup');
                     document.getElementById('heartbeatUrlInput').value = '';
                     
                     // Update UI to show configured state
@@ -526,12 +681,12 @@
                     setTimeout(updateStatus, 1500);
                 } else {
                     alert(`❌ Setup failed: ${data.error}`);
-                    addLogEntry(`❌ Setup failed: ${data.error}`);
+                    addLocalLogEntry(`Setup failed: ${data.error}`, 'error');
                 }
 
             } catch (error) {
                 alert(`❌ Connection error: ${error.message}`);
-                addLogEntry(`❌ Setup error: ${error.message}`);
+                addLocalLogEntry(`Setup error: ${error.message}`, 'error');
             }
         };
 
@@ -541,11 +696,49 @@
             
             setupForm.style.display = 'block';
             configuredSection.style.display = 'none';
-            addLogEntry('Setup form opened for URL change');
+            addLocalLogEntry('Setup form opened for URL change');
+        };
+
+        const showComplianceInfo = async () => {
+            try {
+                const response = await fetch('/compliance');
+                const data = await response.json();
+                
+                let message = `${data.warning}\n\n`;
+                message += `VIOLATED RULES:\n`;
+                data.details.violated_rules.forEach(rule => message += `• ${rule}\n`);
+                message += `\nCONSEQUENCES:\n`;
+                data.details.consequences.forEach(consequence => message += `• ${consequence}\n`);
+                message += `\nRECOMMENDATION:\n${data.recommendation}`;
+                
+                alert(message);
+                addLocalLogEntry('Compliance information viewed');
+            } catch (error) {
+                alert('Error fetching compliance information');
+                addLocalLogEntry('Error fetching compliance info', 'error');
+            }
+        };
+
+        const showAlternatives = async () => {
+            try {
+                const response = await fetch('/compliance');
+                const data = await response.json();
+                
+                let message = `LEGAL ALTERNATIVES TO ATERNOS:\n\n`;
+                data.details.legal_alternatives.forEach(alt => message += `• ${alt}\n`);
+                message += `\n💡 These platforms allow bots and automation!\n`;
+                message += `🎯 Recommended: Oracle Always Free (24/7, no restrictions)`;
+                
+                alert(message);
+                addLocalLogEntry('Alternative hosting options viewed');
+            } catch (error) {
+                alert('Error fetching alternatives information');
+                addLocalLogEntry('Error fetching alternatives info', 'error');
+            }
         };
 
         const refreshData = () => {
-            addLogEntry('Manual refresh triggered');
+            addLocalLogEntry('Manual refresh triggered');
             updateStatus();
         };
 
@@ -553,30 +746,31 @@
             if (!confirm('Restart bot? This will temporarily disconnect.')) return;
             
             try {
-                addLogEntry('Restart command sent');
+                addLocalLogEntry('Restart command sent');
                 await fetch('/restart');
                 alert('Bot restart initiated!');
-                addLogEntry('Bot restart initiated');
                 setTimeout(updateStatus, 3000);
             } catch (error) {
                 alert(`Error restarting bot: ${error.message}`);
-                addLogEntry(`Restart failed: ${error.message}`);
+                addLocalLogEntry(`Restart failed: ${error.message}`, 'error');
             }
         };
 
         // Initialize
-        addLogEntry('Dashboard initialized');
+        addLocalLogEntry('Dashboard initialized');
+        connectLogStream(); // Connect to live log stream
         updateStatus();
         updateInterval = setInterval(updateStatus, 15000); // Update every 15 seconds
         
         // Add initial log entries
         setTimeout(() => {
-            addLogEntry('Auto-refresh enabled (15s interval)');
+            addLocalLogEntry('Auto-refresh enabled (15s interval)');
         }, 1000);
 
         // Cleanup
         window.addEventListener('beforeunload', () => {
             if (updateInterval) clearInterval(updateInterval);
+            if (eventSource) eventSource.close();
         });
     </script>
 </body>

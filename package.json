@@ -1,7 +1,7 @@
 {
   "name": "aternos-bedrock-bot",
-  "version": "1.0.0", 
-  "description": "Bot keep alive cho Aternos Bedrock server Meo_MC403-IFBX",
+  "version": "1.0.0",
+  "description": "24/7 Keep-Alive Bot for Aternos Bedrock Server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -14,24 +14,30 @@
     "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\""
   },
   "dependencies": {
-    "bedrock-protocol": "^3.46.0",
-    "express": "^5.1.0",
-    "node-cron": "^4.1.1",
-    "axios": "^1.10.0"
+    "bedrock-protocol": "^3.45.0",
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "node-cron": "^3.0.3",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "keywords": [
     "minecraft",
     "bedrock",
-    "aternos",
+    "bot",
     "keepalive",
-    "bot"
+    "aternos",
+    "automation"
   ],
-  "author": "Bot Creator",
-  "license": "MIT"
+  "author": "Bot Developer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  }
 } 

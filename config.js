@@ -2,55 +2,73 @@
 module.exports = {
   // ===== SERVER CONFIGURATION =====
   server: {
-    host: "Meo_MC403-IFBX.aternos.me",
-    port: 33122,
-    version: "1.21.70", // Version Bedrock server
+    host: process.env.SERVER_HOST || "Meo_MC403-IFBX.aternos.me",
+    port: parseInt(process.env.SERVER_PORT) || 33122,
+    version: process.env.MC_VERSION || "1.21.70", // Bedrock version
   },
 
   // ===== BOT CONFIGURATION =====
   bot: {
-    username: `AFKBOT_${Math.floor(Math.random() * 999)}`,
-
-    // *** QUAN TRỌNG: SERVER TYPE ***
-    isOfflineMode: true, // true = Server crack, false = Server premium
-    skipAuthentication: true, // Bỏ qua Microsoft authentication
-
-    // Reconnection settings
-    maxReconnectAttempts: 15,
-    baseReconnectDelay: 5000, // milliseconds
-    maxReconnectDelay: 120000, // 2 phút
+    username: process.env.BOT_USERNAME || "KeepBot_403",
+    maxReconnectAttempts: parseInt(process.env.MAX_RECONNECT_ATTEMPTS) || 50,
+    isOfflineMode: process.env.OFFLINE_MODE === "true", // Crack server support
+    skipAuthentication: process.env.SKIP_AUTH === "true",
   },
 
   // ===== ANTI-AFK SETTINGS =====
   antiAfk: {
-    enabled: true,
-    interval: 30000, // 30 giây (tăng để tránh spam)
-    movementRange: 0.1, // Phạm vi di chuyển nhỏ hơn
-    includeJumping: false, // Tắt nhảy để tránh lỗi
-    method: "simple", // "simple" hoặc "movement" hoặc "rotation"
-    fallbackToKeepalive: true, // Fallback về keepalive nếu movement fail
+    enabled: process.env.ANTI_AFK_ENABLED !== "false",
+    interval: parseInt(process.env.ANTI_AFK_INTERVAL) || 45000, // 45 seconds
+    method: process.env.ANTI_AFK_METHOD || "verified_chat", // Server-verified method
+    fallbackToKeepalive: process.env.FALLBACK_ENABLED !== "false",
+
+    // Available methods (prioritizing server-verified approaches)
+    availableMethods: [
+      "verified_chat", // Most reliable - chat with server verification
+      "verified_command", // Very effective - commands with response validation
+      "player_action_verified", // Good - proper Bedrock player actions
+      "connection_heartbeat", // Basic - UDP socket maintenance
+      "gentle_movement_tracked", // Limited - movement with position tracking
+      "simple_presence", // Fallback - basic presence
+    ],
+
+    // Important notes about Bedrock server communication
+    notes: [
+      "Bedrock edition uses UDP protocol - packets may be dropped",
+      "Server verification ensures packets actually reach the server",
+      "Chat messages and commands provide the best verification",
+      "Movement packets are often ignored without manual interaction",
+      "Bot must be properly spawned for packets to be processed",
+    ],
+
+    // Verification settings
+    verification: {
+      enabled: true,
+      timeoutMs: 4000, // How long to wait for server response
+      trackFailures: true,
+      maxConsecutiveFailures: 3,
+    },
   },
 
   // ===== SCHEDULED RESTART =====
   scheduling: {
-    autoRestart: true,
-    restartInterval: "0 */6 * * *", // Mỗi 6 tiếng (cron format)
+    autoRestart: process.env.AUTO_RESTART_ENABLED === "true",
+    restartInterval: process.env.RESTART_CRON || "0 6 * * *", // Daily at 6 AM
   },
 
   // ===== WEB SERVER =====
   webServer: {
-    port: process.env.PORT || 10000, // Render sử dụng port 10000
-    enableDashboard: true,
-    enableHealthCheck: true,
+    port: parseInt(process.env.PORT) || 3000,
+    enableDashboard: process.env.DASHBOARD_ENABLED !== "false",
   },
 
   // ===== BETTER STACK MONITORING =====
   monitoring: {
     betterStack: {
-      enabled: process.env.BETTER_STACK_ENABLED === "true" || false,
-      heartbeatUrl: process.env.BETTER_STACK_HEARTBEAT || "",
-      apiKey: process.env.BETTER_STACK_API_KEY || "",
-      heartbeatInterval: 60000, // 1 phút
+      enabled: process.env.BETTER_STACK_ENABLED === "true",
+      heartbeatUrl: process.env.BETTER_STACK_HEARTBEAT_URL,
+      apiKey: process.env.BETTER_STACK_API_KEY,
+      heartbeatInterval: parseInt(process.env.HEARTBEAT_INTERVAL) || 60000, // 1 minute
     },
   },
 
@@ -68,7 +86,7 @@ module.exports = {
     crackServer: {
       isOfflineMode: true,
       skipAuthentication: true,
-      username: `AFKBOT_${Math.floor(Math.random() * 999)}`,
+      username: `LOADING99_${Math.floor(Math.random() * 999)}`,
     },
 
     // Preset cho server premium/online
@@ -77,6 +95,25 @@ module.exports = {
       skipAuthentication: false,
       username: "YourMinecraftUsername", // Thay bằng username thật
     },
+  },
+
+  // Compliance and warnings
+  compliance: {
+    aternosWarning: true,
+    riskLevel: "HIGH",
+    recommendation: "Consider migrating to bot-friendly hosting platform",
+    violatedRules: [
+      "§5.2.c.1: Using fake players (bots)",
+      "§5.2.c.2: Automatically reconnecting after disconnect",
+      "§5.2.c.3: Faking player activity",
+    ],
+    legalAlternatives: [
+      "Minehut (free, bot-friendly)",
+      "FreeMcServer.net (free, bot-friendly)",
+      "Server.pro (free, bot-friendly)",
+      "Oracle Always Free (full control)",
+      "AWS Free Tier (12 months free)",
+    ],
   },
 };
 

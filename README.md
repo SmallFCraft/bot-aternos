@@ -1,104 +1,247 @@
-# 🤖 Aternos Bedrock Bot - 24/7 Keep Alive
+# 🤖 Aternos Bedrock Keep-Alive Bot
 
-**✅ BOT ĐÃ DEPLOY THÀNH CÔNG!**  
-**🌐 URL:** [https://bot-aternos-6ltq.onrender.com](https://bot-aternos-6ltq.onrender.com)
+## ⚠️ **IMPORTANT DISCLAIMER**
+This bot **VIOLATES Aternos Terms of Service** and may result in account suspension or permanent ban. Use at your own risk.
 
-## 🎮 Server Info
-- **Server:** Meo_MC403-IFBX.aternos.me:33122
-- **Type:** Bedrock Edition
-- **Version:** 1.21.71.01  
-- **Username:** AFKBOT_999
-
-## 📊 Bot Status (LIVE)
-- ✅ **Connected:** true
-- ✅ **Anti-AFK:** Active
-- ✅ **Server Online:** 24/7
-
-## 🔗 Quick Links
-- **🎮 Dashboard:** [/dashboard](https://bot-aternos-6ltq.onrender.com/dashboard)
-- **❤️ Health:** [/health](https://bot-aternos-6ltq.onrender.com/health)
-- **📊 Stats:** [/stats](https://bot-aternos-6ltq.onrender.com/stats)
-- **🔄 Restart:** [/restart](https://bot-aternos-6ltq.onrender.com/restart)
+**Recommended:** Migrate to bot-friendly hosting platforms like Oracle Always Free, Minehut, or FreeMcServer.net.
 
 ---
 
-## 💗 Setup Better Stack (Chỉ 3 bước!)
+## 🔍 **Critical Bot Limitation Discovery**
 
-### 🔴 Monitor Status: Disabled → 🟢 Enabled
+### ❌ **The Movement Problem**
+Bots that join Minecraft Bedrock servers **without manual player interaction** enter a "ghost player" state where:
+- Movement packets are **ignored by the server**
+- Anti-AFK movement becomes **completely ineffective**
+- Bot appears online but is treated as inactive
+- Server will still kick the bot for "inactivity"
 
-#### Bước 1: Tạo Better Stack Account
-1. Vào [betterstack.com](https://betterstack.com) → Sign up miễn phí
-2. Create Monitor → **Heartbeat Monitor**
-3. Name: "Aternos Bot" | Frequency: 60s
+### ✅ **Effective Solutions Implemented**
 
-#### Bước 2: Copy Heartbeat URL  
-Better Stack sẽ cho bạn URL:
-```
-https://betterstack.com/api/v1/heartbeat/YOUR_KEY
-```
+Our new anti-AFK system uses **player interactions** instead of movement:
 
-#### Bước 3: Setup Bot
-**CÁCH DỄ NHẤT:**
-1. Vào [Dashboard](https://bot-aternos-6ltq.onrender.com/dashboard)
-2. Tìm "Better Stack Monitoring" 
-3. Click **"⚙️ Setup Heartbeat"**
-4. Paste URL → OK
+| Method | Effectiveness | Description |
+|--------|---------------|-------------|
+| `chat_keepalive` | 🟢 **High** | Sends chat messages periodically |
+| `command_keepalive` | 🟢 **High** | Executes server commands |
+| `player_action` | 🟡 **Medium** | Simulates block interactions |
+| `inventory_action` | 🟡 **Medium** | Opens/closes inventory |
+| `realistic_walk` | 🔴 **Low** | Movement (may be ignored) |
+| `ping` | 🟡 **Basic** | Socket keepalive only |
 
-**DONE!** Status chuyển 🔴 Disabled → 🟢 Enabled
+---
 
-### ✅ Test Setup:
-```
-https://bot-aternos-6ltq.onrender.com/betterstack-status
+## 🚀 **Quick Start**
+
+### Prerequisites
+- Node.js 18+
+- NPM/Yarn
+
+### Installation
+```bash
+git clone [your-repo]
+cd Bot
+npm install
 ```
 
----
+### Configuration
+```bash
+# Required
+export BOT_USERNAME="YourBotName"
+export SERVER_HOST="your-server.aternos.me"
+export SERVER_PORT="33122"
 
-## 🛠️ Features
+# Optional
+export ANTI_AFK_METHOD="chat_keepalive"
+export ANTI_AFK_INTERVAL="45000"
+export OFFLINE_MODE="true"
+```
 
-### 🤖 Bot
-- ✅ Auto-connect Bedrock server
-- ✅ Anti-AFK (4 methods, no crash)
-- ✅ Auto-reconnect với exponential backoff
-- ✅ Scheduled restart mỗi 6h
-
-### 📊 Monitoring  
-- ✅ Real-time dashboard
-- ✅ Better Stack integration
-- ✅ Health checks
-- ✅ Live logs
-
-### 🔧 Management
-- ✅ Anti-AFK method switcher
-- ✅ Manual restart
-- ✅ Live status monitoring
-- ✅ Error handling
+### Run
+```bash
+npm start
+# or
+node index.js
+```
 
 ---
 
-## 🚨 Troubleshooting
+## 🎛️ **Configuration**
 
-### ❌ Bot không connect?
-1. Check Aternos server online
-2. Restart: [/restart](https://bot-aternos-6ltq.onrender.com/restart)
+### Anti-AFK Methods
+```javascript
+// Available methods (in order of effectiveness)
+const methods = [
+  "chat_keepalive",      // 🟢 Sends random chat messages
+  "command_keepalive",   // 🟢 Executes commands like /help
+  "player_action",       // 🟡 Block interaction simulation
+  "inventory_action",    // 🟡 Inventory open/close
+  "realistic_walk",      // 🔴 Movement (limited effectiveness)
+  "look_around",         // 🔴 Head rotation (limited)
+  "ping",                // 🟡 Connection keepalive
+  "simple"               // 🟡 Fallback method
+];
+```
 
-### ❌ Better Stack Disabled?
-1. Follow setup steps above
-2. Check heartbeat URL format
-3. Test: [/betterstack-status](https://bot-aternos-6ltq.onrender.com/betterstack-status)
+### Environment Variables
+```bash
+# Server Settings
+SERVER_HOST=your-server.aternos.me
+SERVER_PORT=33122
+BOT_USERNAME=KeepBot_403
+OFFLINE_MODE=true
+
+# Anti-AFK Settings  
+ANTI_AFK_METHOD=chat_keepalive
+ANTI_AFK_INTERVAL=45000
+FALLBACK_ENABLED=true
+
+# Monitoring
+BETTER_STACK_HEARTBEAT_URL=https://betterstack.com/api/v1/heartbeat/YOUR_KEY
+```
 
 ---
 
-## 📱 Tech Stack
-- **Hosting:** Render.com (stable, 24/7)
-- **Protocol:** bedrock-protocol (Bedrock support)
-- **Monitoring:** Better Stack (professional)
-- **Language:** Node.js
+## 📊 **Dashboard Features**
 
-## 🎉 Result
-**🎮 ATERNOS SERVER LUÔN ONLINE 24/7!**  
-**💗 PROFESSIONAL MONITORING!**  
-**📊 REAL-TIME DASHBOARD!**
+Access dashboard at: `http://localhost:3000/dashboard`
+
+### Features:
+- 🔴🟢 **Real-time bot status**
+- 📋 **Live server logs** (SSE stream)
+- 📈 **Statistics tracking**
+- ⚙️ **Method switching** via API
+- 💗 **Better Stack setup**
+- ⚠️ **Compliance warnings**
+
+### API Endpoints:
+```bash
+GET  /                    # Bot status
+GET  /health             # Health check
+GET  /stats              # Detailed statistics
+GET  /restart            # Restart bot
+GET  /compliance         # Policy violation info
+GET  /change-antiafk/:method  # Switch anti-AFK method
+POST /setup-betterstack  # Configure monitoring
+```
 
 ---
 
-**💡 Bookmark:** [bot-aternos-6ltq.onrender.com/dashboard](https://bot-aternos-6ltq.onrender.com/dashboard) 
+## 🐛 **Troubleshooting**
+
+### Bot Not Working?
+1. **Check server status** on Aternos dashboard
+2. **Verify credentials** (username, server address)
+3. **Try different anti-AFK method**:
+   ```bash
+   curl http://localhost:3000/change-antiafk/chat_keepalive
+   ```
+4. **Check live logs** in dashboard for error details
+
+### Common Issues:
+- **"Movement ignored"** → Use `chat_keepalive` or `command_keepalive`
+- **Connection refused** → Server may be offline
+- **Authentication failed** → Set `OFFLINE_MODE=true` for cracked servers
+- **Spam detection** → Increase `ANTI_AFK_INTERVAL`
+
+---
+
+## ⚖️ **Legal Alternatives**
+
+Instead of violating Aternos ToS, consider these **bot-friendly** platforms:
+
+### 🆓 **Free Options:**
+- **Minehut** - Free, allows bots, good uptime
+- **FreeMcServer.net** - Free, bot-friendly
+- **Server.pro** - Free tier, automation allowed
+
+### 🏆 **Recommended:**
+- **Oracle Always Free** - 24/7, full control, truly free forever
+- **AWS Free Tier** - 12 months free, professional hosting
+- **Google Cloud Free** - $300 credit, enterprise-grade
+
+### Migration Benefits:
+- ✅ No policy violations
+- ✅ Better performance
+- ✅ More control
+- ✅ No risk of account suspension
+
+---
+
+## 📦 **Deployment**
+
+### Render.com (Current)
+```yaml
+# render.yaml
+services:
+  - type: web
+    name: aternos-bot
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+```
+
+### Docker
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["node", "index.js"]
+```
+
+---
+
+## 🔧 **Development**
+
+### Project Structure:
+```
+Bot/
+├── index.js          # Main bot logic
+├── config.js         # Configuration
+├── monitor.html      # Dashboard UI
+├── package.json      # Dependencies
+└── README.md         # This file
+```
+
+### Contributing:
+1. Fork the repository
+2. Create feature branch
+3. Test thoroughly
+4. Submit pull request
+
+---
+
+## ⚠️ **Warnings & Disclaimers**
+
+### Aternos Policy Violations:
+- **§5.2.c.1:** Using fake players (bots) ❌
+- **§5.2.c.2:** Automatically reconnecting after disconnect ❌
+- **§5.2.c.3:** Faking player activity ❌
+
+### Consequences:
+- Account suspension
+- Server deletion
+- Permanent ban
+- Loss of all data
+
+### Recommendation:
+**Migrate to bot-friendly hosting** to avoid these risks entirely.
+
+---
+
+## 📞 **Support**
+
+- 🐛 **Issues:** Create GitHub issue
+- 💬 **Questions:** Check troubleshooting section
+- 🔄 **Updates:** Watch repository for improvements
+
+---
+
+## 📄 **License**
+
+This project is for educational purposes only. Use at your own risk.
+
+**The developers are not responsible for any account suspensions, bans, or data loss resulting from using this bot.** 
