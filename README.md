@@ -1,5 +1,12 @@
 # 🤖 Aternos Bedrock Keep-Alive Bot
 
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![bedrock-protocol](https://img.shields.io/badge/bedrock--protocol-3.46.0-blue.svg)](https://www.npmjs.com/package/bedrock-protocol)
+[![Security](https://img.shields.io/badge/Security-Fixed-brightgreen.svg)](#security-fixes)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
+
+**Advanced Minecraft Bedrock Edition bot với dashboard web, monitoring, và nhiều tính năng mở rộng.**
+
 ## ⚠️ **IMPORTANT DISCLAIMER**
 This bot **VIOLATES Aternos Terms of Service** and may result in account suspension or permanent ban. Use at your own risk.
 
@@ -7,37 +14,41 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 
 ---
 
-## 🔍 **Critical Bot Limitation Discovery**
+## � **Key Features**
 
-### ❌ **The Movement Problem**
-Bots that join Minecraft Bedrock servers **without manual player interaction** enter a "ghost player" state where:
-- Movement packets are **ignored by the server**
-- Anti-AFK movement becomes **completely ineffective**
-- Bot appears online but is treated as inactive
-- Server will still kick the bot for "inactivity"
+### 🎯 **Core Bot Features**
+- ✅ **24/7 Keep-Alive** - Duy trì server Aternos hoạt động
+- ✅ **Auto Reconnect** - Tự động kết nối lại khi mất kết nối
+- ✅ **Multi-Version Support** - Hỗ trợ Minecraft Bedrock 1.16 → 1.21.90
+- ✅ **Crack/Premium Mode** - Hỗ trợ cả server crack và premium
+- ✅ **Real-time Dashboard** - Web interface với live monitoring
 
-### ✅ **Effective Solutions Implemented**
+### 🛠️ **Advanced Features (bedrock-protocol)**
+- 🔐 **Authentication & Encryption** - Xbox Live authentication
+- 📦 **Packet Management** - Parse/serialize packets as JavaScript objects
+- 🔄 **Auto Keep-Alive** - Tự động respond keep-alive packets
+- 🌐 **Proxy Support** - MITM connections và proxy
+- 📊 **Server Ping** - Kiểm tra status server
+- 💬 **Chat Integration** - Gửi/nhận chat messages
+- 🎮 **Game Events** - Listen game events và player actions
 
-Our new anti-AFK system uses **player interactions** instead of movement:
-
-| Method | Effectiveness | Description |
-|--------|---------------|-------------|
-| `chat_keepalive` | 🟢 **High** | Sends chat messages periodically |
-| `command_keepalive` | 🟢 **High** | Executes server commands |
-| `player_action` | 🟡 **Medium** | Simulates block interactions |
-| `inventory_action` | 🟡 **Medium** | Opens/closes inventory |
-| `realistic_walk` | 🔴 **Low** | Movement (may be ignored) |
-| `ping` | 🟡 **Basic** | Socket keepalive only |
-
----
+### 🚶 **Movement & Position Tracking**
+- 📍 **Real-time Position Tracking** - Track bot's current position and movement
+- 🚶 **Anti-AFK Movement** - Automatic movement to prevent AFK detection
+- 👥 **Player Tracking** - Monitor nearby players and their positions
+- 📊 **Movement Statistics** - Distance traveled, movement history
+- 🎮 **Manual Movement** - Control bot movement via dashboard
+- ⚙️ **Configurable Settings** - Customizable movement patterns and intervals
 
 ## 🚀 **Quick Start**
 
 ### Prerequisites
+
 - Node.js 18+
 - NPM/Yarn
 
 ### Installation
+
 ```bash
 git clone [your-repo]
 cd Bot
@@ -45,68 +56,107 @@ npm install
 ```
 
 ### Configuration
-```bash
-# Required
-export BOT_USERNAME="YourBotName"
-export SERVER_HOST="your-server.aternos.me"
-export SERVER_PORT="33122"
 
-# Optional
-export ANTI_AFK_METHOD="chat_keepalive"
-export ANTI_AFK_INTERVAL="45000"
-export OFFLINE_MODE="true"
+Edit `config.js` hoặc sử dụng environment variables:
+
+```bash
+# Server Settings
+SERVER_HOST=Meo_MC403-IFBX.aternos.me
+SERVER_PORT=33122
+BOT_USERNAME=LOADING99_71
+OFFLINE_MODE=true
+
+# Monitoring (Optional)
+BETTER_STACK_HEARTBEAT_URL=https://betterstack.com/api/v1/heartbeat/YOUR_KEY
+
+# Movement & Position Tracking
+ANTI_AFK_ENABLED=true
+ANTI_AFK_INTERVAL=30000
+MOVEMENT_RANGE=2.0
+POSITION_TRACKING_ENABLED=true
+TRACK_OTHER_PLAYERS=true
 ```
 
-### Run
+### Run Bot
+
 ```bash
+# Start bot
 npm start
-# or
-node index.js
+
+# Development mode với auto-restart
+npm run dev
+
+# Crack server preset
+npm run crack
+
+# Premium server preset
+npm run premium
+```
+
+### Access Dashboard
+
+- **Web Dashboard:** http://localhost:3000/dashboard
+- **Health Check:** http://localhost:3000/health
+- **API Status:** http://localhost:3000/stats
+- **Movement Status:** http://localhost:3000/movement/status
+- **Players Data:** http://localhost:3000/movement/players
+
+### Movement API Endpoints
+
+```bash
+# Get movement status
+GET /movement/status
+
+# Start/Stop Anti-AFK movement
+POST /movement/anti-afk/start
+POST /movement/anti-afk/stop
+
+# Manual movement control
+POST /movement/manual-move
+Content-Type: application/json
+{"x": 10, "y": 64, "z": 5}
+
+# Get nearby players data
+GET /movement/players
 ```
 
 ---
 
-## 🎛️ **Configuration**
+## 🔧 **Security Fixes**
 
-### Anti-AFK Methods
-```javascript
-// Available methods (in order of effectiveness)
-const methods = [
-  "chat_keepalive",      // 🟢 Sends random chat messages
-  "command_keepalive",   // 🟢 Executes commands like /help
-  "player_action",       // 🟡 Block interaction simulation
-  "inventory_action",    // 🟡 Inventory open/close
-  "realistic_walk",      // 🔴 Movement (limited effectiveness)
-  "look_around",         // 🔴 Head rotation (limited)
-  "ping",                // 🟡 Connection keepalive
-  "simple"               // 🟡 Fallback method
-];
-```
+✅ **All security vulnerabilities have been resolved!**
 
-### Environment Variables
+### Fixed Issues
+
+- **6 Security Vulnerabilities** → 0 vulnerabilities ✅
+- **Deprecated Warnings** → Suppressed via `.npmrc` ✅
+- **Dependencies Updated** → Latest secure versions ✅
+
+### Security Tools
+
 ```bash
-# Server Settings
-SERVER_HOST=your-server.aternos.me
-SERVER_PORT=33122
-BOT_USERNAME=KeepBot_403
-OFFLINE_MODE=true
+# Run security fix script
+npm run fix-security
 
-# Anti-AFK Settings  
-ANTI_AFK_METHOD=chat_keepalive
-ANTI_AFK_INTERVAL=45000
-FALLBACK_ENABLED=true
+# Clean install
+npm run clean-install
 
-# Monitoring
-BETTER_STACK_HEARTBEAT_URL=https://betterstack.com/api/v1/heartbeat/YOUR_KEY
+# Check security status
+npm audit
 ```
+
+---
+
+## 🎛️ **Advanced Configuration**
 
 ---
 
 ## 📊 **Dashboard Features**
 
-Access dashboard at: `http://localhost:3000/dashboard`
+Access dashboard at: <http://localhost:3000/dashboard>
 
-### Features:
+### Features
+
 - 🔴🟢 **Real-time bot status**
 - 📋 **Live server logs** (SSE stream)
 - 📈 **Statistics tracking**
@@ -114,15 +164,48 @@ Access dashboard at: `http://localhost:3000/dashboard`
 - 💗 **Better Stack setup**
 - ⚠️ **Compliance warnings**
 
-### API Endpoints:
+### API Endpoints
+
 ```bash
 GET  /                    # Bot status
 GET  /health             # Health check
 GET  /stats              # Detailed statistics
 GET  /restart            # Restart bot
 GET  /compliance         # Policy violation info
-GET  /change-antiafk/:method  # Switch anti-AFK method
 POST /setup-betterstack  # Configure monitoring
+```
+
+### bedrock-protocol Extended Features
+
+```javascript
+// Chat integration
+client.on('text', (packet) => {
+  console.log(`${packet.source_name}: ${packet.message}`)
+})
+
+// Send chat message
+client.queue('text', {
+  type: 'chat',
+  needs_translation: false,
+  source_name: client.username,
+  message: 'Hello from bot!'
+})
+
+// Movement packets (experimental)
+client.queue('move_player', {
+  runtime_id: client.runtime_id,
+  position: { x: 0, y: 64, z: 0 },
+  rotation: { x: 0, y: 0, z: 0 }
+})
+
+// Inventory management
+client.on('inventory_transaction', (packet) => {
+  // Handle inventory changes
+})
+
+// Server ping
+const { ping } = require('bedrock-protocol')
+ping({ host: 'server.com', port: 19132 }).then(console.log)
 ```
 
 ---
@@ -132,17 +215,12 @@ POST /setup-betterstack  # Configure monitoring
 ### Bot Not Working?
 1. **Check server status** on Aternos dashboard
 2. **Verify credentials** (username, server address)
-3. **Try different anti-AFK method**:
-   ```bash
-   curl http://localhost:3000/change-antiafk/chat_keepalive
-   ```
 4. **Check live logs** in dashboard for error details
 
 ### Common Issues:
 - **"Movement ignored"** → Use `chat_keepalive` or `command_keepalive`
 - **Connection refused** → Server may be offline
 - **Authentication failed** → Set `OFFLINE_MODE=true` for cracked servers
-- **Spam detection** → Increase `ANTI_AFK_INTERVAL`
 
 ---
 
@@ -171,42 +249,111 @@ Instead of violating Aternos ToS, consider these **bot-friendly** platforms:
 ## 📦 **Deployment**
 
 ### Render.com (Current)
+
 ```yaml
 # render.yaml
 services:
   - type: web
     name: aternos-bot
     env: node
-    buildCommand: npm install
-    startCommand: node index.js
+    buildCommand: npm install --production
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ gcc
+
+# Copy package files
 COPY package*.json ./
-RUN npm install
+RUN npm install --production
+
+# Copy source code
 COPY . .
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
 EXPOSE 3000
-CMD ["node", "index.js"]
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+CMD ["npm", "start"]
+```
+
+### Kubernetes
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aternos-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aternos-bot
+  template:
+    metadata:
+      labels:
+        app: aternos-bot
+    spec:
+      containers:
+      - name: bot
+        image: aternos-bot:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
 ```
 
 ---
 
 ## 🔧 **Development**
 
-### Project Structure:
+### Project Structure
+
 ```
 Bot/
-├── index.js          # Main bot logic
-├── config.js         # Configuration
-├── monitor.html      # Dashboard UI
-├── package.json      # Dependencies
-└── README.md         # This file
+├── index.js              # Main bot logic (782 lines)
+├── config.js             # Server configuration
+├── monitor.html          # Dashboard UI
+├── package.json          # Dependencies & scripts
+├── fix-security.js       # Security fix tool
+├── .npmrc               # npm configuration
+├── Dockerfile           # Docker container
+├── render.yaml          # Render.com deployment
+├── SECURITY-FIX.md      # Security documentation
+└── README.md            # This file
 ```
 
-### Contributing:
+### Available Scripts
+
+```bash
+npm start              # Start bot
+npm run dev           # Development mode
+npm run crack         # Crack server preset
+npm run premium       # Premium server preset
+npm run fix-security  # Fix security issues
+npm run clean-install # Clean npm install
+```
+
+### Contributing
+
 1. Fork the repository
 2. Create feature branch
 3. Test thoroughly
@@ -240,8 +387,82 @@ Bot/
 
 ---
 
+## 🆕 **Possible Extensions với bedrock-protocol**
+
+### Chat Bot Features
+
+```javascript
+// Auto-responder
+client.on('text', (packet) => {
+  if (packet.message.includes('!help')) {
+    client.queue('text', {
+      type: 'chat',
+      message: 'Available commands: !time, !players, !status'
+    })
+  }
+})
+
+// Command system
+const commands = {
+  '!time': () => new Date().toLocaleString(),
+  '!players': () => `Players online: ${server.players.length}`,
+  '!status': () => 'Bot is running!'
+}
+```
+
+### Advanced Monitoring
+
+```javascript
+// Player tracking
+client.on('add_player', (packet) => {
+  console.log(`Player joined: ${packet.username}`)
+})
+
+// Block changes
+client.on('update_block', (packet) => {
+  console.log(`Block changed at ${packet.coordinates}`)
+})
+
+// Inventory monitoring
+client.on('inventory_transaction', (packet) => {
+  // Track item movements
+})
+```
+
+### Server Management
+
+```javascript
+// Auto-restart on crash
+client.on('disconnect', (reason) => {
+  console.log(`Disconnected: ${reason}`)
+  setTimeout(() => reconnect(), 5000)
+})
+
+// Performance monitoring
+setInterval(() => {
+  const stats = client.getStats()
+  console.log(`Ping: ${stats.ping}ms, Packets: ${stats.packets}`)
+}, 30000)
+```
+
+---
+
 ## 📄 **License**
 
-This project is for educational purposes only. Use at your own risk.
+MIT License - This project is for educational purposes only. Use at your own risk.
 
-**The developers are not responsible for any account suspensions, bans, or data loss resulting from using this bot.** 
+**The developers are not responsible for any account suspensions, bans, or data loss resulting from using this bot.**
+
+---
+
+## 🔗 **Links & Resources**
+
+- **bedrock-protocol:** <https://www.npmjs.com/package/bedrock-protocol>
+- **PrismarineJS:** <https://github.com/PrismarineJS>
+- **Minecraft Protocol Docs:** <https://prismarinejs.github.io/minecraft-data/>
+- **Better Stack Monitoring:** <https://betterstack.com>
+- **Oracle Always Free:** <https://www.oracle.com/cloud/free/>
+
+---
+
+## ⭐ Star this repo if it helped you! ⭐

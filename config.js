@@ -9,7 +9,7 @@ module.exports = {
 
   // ===== BOT CONFIGURATION =====
   bot: {
-    username: process.env.BOT_USERNAME || "KeepBot_403",
+    username: process.env.BOT_USERNAME,
     maxReconnectAttempts: parseInt(process.env.MAX_RECONNECT_ATTEMPTS) || 50,
     isOfflineMode: process.env.OFFLINE_MODE === "true", // Crack server support
     skipAuthentication: process.env.SKIP_AUTH === "true",
@@ -44,13 +44,39 @@ module.exports = {
     enablePacketLogs: false, // Set true để debug
   },
 
+  // ===== MOVEMENT & POSITION TRACKING =====
+  movement: {
+    // Anti-AFK movement system
+    antiAfk: {
+      enabled: process.env.ANTI_AFK_ENABLED !== "false", // true by default
+      interval: parseInt(process.env.ANTI_AFK_INTERVAL) || 30000, // 30 seconds
+      movementRange: parseFloat(process.env.MOVEMENT_RANGE) || 2.0, // blocks
+      randomMovement: process.env.RANDOM_MOVEMENT !== "false", // true by default
+    },
+
+    // Position tracking
+    tracking: {
+      enabled: process.env.POSITION_TRACKING_ENABLED !== "false", // true by default
+      logMovement: process.env.LOG_MOVEMENT === "true",
+      trackOtherPlayers: process.env.TRACK_OTHER_PLAYERS !== "false", // true by default
+      maxPlayerHistory: parseInt(process.env.MAX_PLAYER_HISTORY) || 100,
+    },
+
+    // Movement statistics
+    statistics: {
+      enabled: process.env.MOVEMENT_STATS_ENABLED !== "false", // true by default
+      trackDistance: process.env.TRACK_DISTANCE !== "false", // true by default
+      resetStatsOnRestart: process.env.RESET_STATS_ON_RESTART === "true",
+    },
+  },
+
   // ===== SERVER TYPE PRESETS =====
   presets: {
     // Preset cho server crack/offline
     crackServer: {
       isOfflineMode: true,
       skipAuthentication: true,
-      username: `LOADING99_${Math.floor(Math.random() * 999)}`,
+      username: process.env.BOT_USERNAME,
     },
 
     // Preset cho server premium/online

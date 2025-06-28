@@ -224,7 +224,7 @@ body {
     <div class="container">
         <div class="header">
             <h1>🤖 Aternos Bot Monitor</h1>
-            <p>Connection Only Mode - Meo_MC403-IFBX.aternos.me:33122</p>
+            <p>Connection + Movement Tracking Mode - Meo_MC403-IFBX.aternos.me:33122</p>
             <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                 <a href="https://bot-aternos-6ltq.onrender.com" target="_blank" style="color: #00ff88; text-decoration: none;">bot-aternos-6ltq.onrender.com</a>
             </p>
@@ -270,8 +270,33 @@ body {
                 </div>
                 <div class="metric">
                     <span class="metric-label">Mode:</span>
-                    <span class="metric-value" style="color: #60a5fa;">🔕 Connection Only</span>
+                    <span class="metric-value" style="color: #60a5fa;">🚶 Connection + Movement</span>
                 </div>
+            </div>
+
+            <!-- Movement & Position Tracking -->
+            <div class="card">
+                <h3>🚶 Movement & Position</h3>
+                <div id="movementContent">Loading...</div>
+
+                <!-- Movement Controls -->
+                <div class="controls" style="margin-top: 15px;">
+                    <button onclick="toggleAntiAfk()" id="antiAfkBtn" class="control-btn">
+                        🚶 Toggle Anti-AFK
+                    </button>
+                    <button onclick="showManualMove()" class="control-btn">
+                        🎮 Manual Move
+                    </button>
+                    <button onclick="refreshMovementData()" class="control-btn">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nearby Players -->
+            <div class="card">
+                <h3>👥 Nearby Players</h3>
+                <div id="playersContent">Loading...</div>
             </div>
 
             <!-- Statistics -->
@@ -369,6 +394,29 @@ body {
         let logEntries = [];
         let eventSource = null;
         let logStreamActive = true;
+
+        // Load initial logs from file
+        const loadInitialLogs = async () => {
+            try {
+                const response = await fetch('/logs/recent?lines=50');
+                const data = await response.json();
+
+                if (data.logs && Array.isArray(data.logs)) {
+                    // Clear existing logs and load from file
+                    logEntries = [];
+
+                    data.logs.forEach(logData => {
+                        addServerLogEntry(logData);
+                    });
+
+                    addLocalLogEntry(`Loaded ${data.logs.length} recent logs from file`);
+                } else {
+                    addLocalLogEntry('No previous logs found', 'warn');
+                }
+            } catch (error) {
+                addLocalLogEntry(`Failed to load initial logs: ${error.message}`, 'error');
+            }
+        };
 
         // Live log streaming from server
         const connectLogStream = () => {
@@ -494,10 +542,27 @@ body {
             }
         };
 
-        const clearLog = () => {
-            logEntries = [];
-            updateLiveLog();
-            addLocalLogEntry('Log cleared');
+        const clearLog = async () => {
+            if (!confirm('Clear all logs? This will clear both dashboard and server log files.')) {
+                return;
+            }
+
+            try {
+                // Clear server logs
+                const response = await fetch('/logs/clear', { method: 'POST' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Clear dashboard logs
+                    logEntries = [];
+                    updateLiveLog();
+                    addLocalLogEntry('All logs cleared successfully');
+                } else {
+                    addLocalLogEntry(`Failed to clear server logs: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLocalLogEntry(`Error clearing logs: ${error.message}`, 'error');
+            }
         };
 
         const formatUptime = (seconds) => {
@@ -555,7 +620,7 @@ body {
                     </div>
                     <div class="metric">
                         <span class="metric-label">Mode:</span>
-                        <span class="metric-value" style="color: #60a5fa;">🔕 Connection Only</span>
+                        <span class="metric-value" style="color: #60a5fa;">🚶 Connection + Movement</span>
                     </div>
                 `;
 
@@ -563,6 +628,10 @@ body {
                 document.getElementById('botUsername').textContent = data.serverInfo.username;
                 const pos = data.botStatus.currentPosition;
                 document.getElementById('botPosition').textContent = `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}`;
+
+                // Update movement data
+                updateMovementData();
+                updatePlayersData();
 
                 // Update statistics
                 const statsDiv = document.getElementById('statisticsContent');
@@ -751,7 +820,7 @@ body {
 
         const restartBot = async () => {
             if (!confirm('Restart bot? This will temporarily disconnect.')) return;
-            
+
             try {
                 addLocalLogEntry('Restart command sent');
                 await fetch('/restart');
@@ -763,11 +832,176 @@ body {
             }
         };
 
+        // Movement & Position Tracking Functions
+        const updateMovementData = async () => {
+            try {
+                const response = await fetch('/movement/status');
+                const data = await response.json();
+
+                const movementDiv = document.getElementById('movementContent');
+                const pos = data.currentPosition;
+                const lastMovement = data.lastMovement ? new Date(data.lastMovement).toLocaleTimeString() : 'Never';
+                const lastAntiAfk = data.lastAntiAfkMovement ? new Date(data.lastAntiAfkMovement).toLocaleTimeString() : 'Never';
+
+                movementDiv.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Current Position:</span>
+                        <span class="metric-value">${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Distance:</span>
+                        <span class="metric-value">${data.totalDistance.toFixed(2)} blocks</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Anti-AFK Status:</span>
+                        <span class="metric-value">${data.antiAfkActive ? '🟢 Active' : '🔴 Inactive'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Movement:</span>
+                        <span class="metric-value">${lastMovement}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Anti-AFK:</span>
+                        <span class="metric-value">${lastAntiAfk}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Movement History:</span>
+                        <span class="metric-value">${data.movementHistory.length} recent moves</span>
+                    </div>
+                `;
+
+                // Update anti-AFK button
+                const antiAfkBtn = document.getElementById('antiAfkBtn');
+                if (antiAfkBtn) {
+                    antiAfkBtn.textContent = data.antiAfkActive ? '🛑 Stop Anti-AFK' : '🚶 Start Anti-AFK';
+                    antiAfkBtn.style.background = data.antiAfkActive ?
+                        'linear-gradient(45deg, #dc2626, #b91c1c)' :
+                        'linear-gradient(45deg, #059669, #047857)';
+                }
+
+            } catch (error) {
+                console.error('Error updating movement data:', error);
+                document.getElementById('movementContent').innerHTML =
+                    '<div style="color: #ef4444;">❌ Error loading movement data</div>';
+            }
+        };
+
+        const updatePlayersData = async () => {
+            try {
+                const response = await fetch('/movement/players');
+                const data = await response.json();
+
+                const playersDiv = document.getElementById('playersContent');
+
+                if (data.totalPlayers === 0) {
+                    playersDiv.innerHTML = '<div style="color: #6b7280; text-align: center;">👤 No other players detected</div>';
+                    return;
+                }
+
+                let playersHtml = `<div class="metric">
+                    <span class="metric-label">Total Players:</span>
+                    <span class="metric-value">${data.totalPlayers}</span>
+                </div>`;
+
+                Object.entries(data.players).forEach(([id, player]) => {
+                    const pos = player.position;
+                    const lastSeen = new Date(player.lastSeen).toLocaleTimeString();
+
+                    playersHtml += `
+                        <div style="margin: 10px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+                            <div style="font-weight: bold; color: #60a5fa;">${player.name}</div>
+                            <div style="font-size: 12px; color: #9ca3af;">
+                                Position: ${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}<br>
+                                Last seen: ${lastSeen}<br>
+                                Movements: ${player.totalMovements}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                playersDiv.innerHTML = playersHtml;
+
+            } catch (error) {
+                console.error('Error updating players data:', error);
+                document.getElementById('playersContent').innerHTML =
+                    '<div style="color: #ef4444;">❌ Error loading players data</div>';
+            }
+        };
+
+        const toggleAntiAfk = async () => {
+            try {
+                const statusResponse = await fetch('/movement/status');
+                const statusData = await statusResponse.json();
+
+                const endpoint = statusData.antiAfkActive ? '/movement/anti-afk/stop' : '/movement/anti-afk/start';
+                const response = await fetch(endpoint, { method: 'POST' });
+                const data = await response.json();
+
+                addLocalLogEntry(data.message);
+                updateMovementData(); // Refresh movement data
+
+            } catch (error) {
+                alert(`Error toggling anti-AFK: ${error.message}`);
+                addLocalLogEntry(`Anti-AFK toggle failed: ${error.message}`, 'error');
+            }
+        };
+
+        const showManualMove = () => {
+            const x = prompt('Enter X coordinate:', '0');
+            const y = prompt('Enter Y coordinate:', '64');
+            const z = prompt('Enter Z coordinate:', '0');
+
+            if (x === null || y === null || z === null) return;
+
+            manualMove(parseFloat(x), parseFloat(y), parseFloat(z));
+        };
+
+        const manualMove = async (x, y, z) => {
+            try {
+                const response = await fetch('/movement/manual-move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ x, y, z })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addLocalLogEntry(`Manual movement to (${x}, ${y}, ${z})`);
+                    setTimeout(updateMovementData, 1000); // Refresh after 1 second
+                } else {
+                    alert(`Movement failed: ${data.message}`);
+                    addLocalLogEntry(`Manual movement failed: ${data.message}`, 'error');
+                }
+
+            } catch (error) {
+                alert(`Error sending movement command: ${error.message}`);
+                addLocalLogEntry(`Manual movement error: ${error.message}`, 'error');
+            }
+        };
+
+        const refreshMovementData = () => {
+            updateMovementData();
+            updatePlayersData();
+            addLocalLogEntry('Movement data refreshed');
+        };
+
         // Initialize
-        addLocalLogEntry('Dashboard initialized (Connection Only Mode)');
-        connectLogStream(); // Connect to live log stream
+        addLocalLogEntry('Dashboard initialized (Connection + Movement Tracking Mode)');
+
+        // Load initial logs from file first, then connect to live stream
+        loadInitialLogs().then(() => {
+            connectLogStream(); // Connect to live log stream
+        });
+
         updateStatus();
         updateInterval = setInterval(updateStatus, 15000); // Update every 15 seconds
+
+        // Add movement data auto-refresh
+        let movementUpdateInterval = setInterval(() => {
+            updateMovementData();
+            updatePlayersData();
+        }, 5000); // Update movement data every 5 seconds
         
         // Add initial log entries
         setTimeout(() => {
@@ -778,6 +1012,7 @@ body {
         // Cleanup
         window.addEventListener('beforeunload', () => {
             if (updateInterval) clearInterval(updateInterval);
+            if (movementUpdateInterval) clearInterval(movementUpdateInterval);
             if (eventSource) eventSource.close();
         });
     </script>

@@ -1,6 +1,6 @@
 {
   "name": "aternos-bedrock-bot",
-  "version": "1.0.0", 
+  "version": "1.0.0",
   "description": "24/7 Keep-Alive Bot for Aternos Bedrock Server",
   "main": "index.js",
   "scripts": {
@@ -11,12 +11,22 @@
     "postinstall": "echo 'Installation complete'",
     "setup-betterstack": "node setup-betterstack.js",
     "crack": "node -e \"const config = require('./config'); config.useCrackServerPreset(); console.log('✅ Crack mode enabled');\"",
-    "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\""
+    "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\"",
+    "fix-security": "node fix-security.js",
+    "clean-install": "npm cache clean --force && npm install",
+    "docker:build": "docker build -t aternos-bedrock-bot:latest .",
+    "docker:run": "docker run -d --name aternos-bot -p 3000:3000 --restart unless-stopped aternos-bedrock-bot:latest",
+    "docker:stop": "docker stop aternos-bot",
+    "docker:logs": "docker logs -f aternos-bot",
+    "docker:shell": "docker exec -it aternos-bot sh",
+    "compose:up": "docker-compose up -d",
+    "compose:down": "docker-compose down",
+    "compose:logs": "docker-compose logs -f"
   },
   "dependencies": {
-    "bedrock-protocol": "^3.45.0",
-    "express": "^4.18.2",
     "axios": "^1.6.0",
+    "bedrock-protocol": "^3.5.1",
+    "express": "^4.18.2",
     "node-cron": "^3.0.3",
     "ws": "^8.14.2"
   },
@@ -39,5 +49,11 @@
   "repository": {
     "type": "git",
     "url": "your-repo-url"
+  },
+  "overrides": {
+    "axios": "^1.6.0",
+    "tar": "^6.2.1",
+    "jsonwebtoken": "^9.0.0",
+    "jose-node-cjs-runtime": "^5.0.0"
   }
-} 
+}

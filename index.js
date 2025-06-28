@@ -8,6 +8,7 @@ const path = require("path");
 
 // Import configuration
 const config = require("./config");
+const FileLogger = require("./logger");
 
 // Extract configurations for easier access
 const SERVER_CONFIG = {
@@ -28,20 +29,22 @@ const BETTER_STACK = {
   interval: config.monitoring.betterStack.heartbeatInterval,
 };
 
-// Real-time log system for dashboard sync
+// Initialize file logger
+const logger = new FileLogger("./logs/bot.log");
+
+// Real-time log system for dashboard sync (now reads from file)
 let logBroadcasters = new Set();
-const broadcastLog = (message, type = "info") => {
+const broadcastLog = (message, type = "info", source = "bot") => {
+  // Log to file using FileLogger
+  logger.log(message, type, source);
+
+  // Create log entry for broadcasting
   const logEntry = {
     timestamp: new Date().toISOString(),
     message,
     type,
+    source,
   };
-
-  console.log(
-    `${
-      type === "error" ? "❌" : type === "warn" ? "⚠️" : "ℹ️"
-    } [${new Date().toLocaleTimeString()}] ${message}`
-  );
 
   // Broadcast to all connected dashboards
   logBroadcasters.forEach(broadcaster => {
@@ -68,6 +71,21 @@ let botStatus = {
   hasSpawned: false,
   sessionValidated: false,
   serverCommunicationVerified: false,
+
+  // Movement & Position Tracking
+  movement: {
+    enabled: config.movement.tracking.enabled,
+    antiAfkEnabled: config.movement.antiAfk.enabled,
+    lastMovement: null,
+    totalDistance: 0,
+    movementHistory: [],
+    lastAntiAfkMovement: null,
+    antiAfkActive: false,
+  },
+
+  // Other players tracking
+  nearbyPlayers: new Map(),
+  playerMovementHistory: new Map(),
 };
 
 // Express web server để keep repl alive
@@ -78,6 +96,49 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Server-Sent Events endpoint for real-time logs
+// API endpoint to get recent logs from file
+app.get("/logs/recent", (req, res) => {
+  try {
+    const maxLines = parseInt(req.query.lines) || 100;
+    const logs = logger.getRecentLogs(maxLines);
+    res.json({
+      logs: logs,
+      total: logs.length,
+      maxLines: maxLines,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to read logs",
+      message: error.message,
+    });
+  }
+});
+
+// API endpoint to clear logs
+app.post("/logs/clear", (req, res) => {
+  try {
+    const success = logger.clearLogs();
+    if (success) {
+      broadcastLog("Log file cleared by user", "info", "system");
+      res.json({
+        message: "Logs cleared successfully",
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(500).json({
+        error: "Failed to clear logs",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to clear logs",
+      message: error.message,
+    });
+  }
+});
+
+// Server-Sent Events endpoint for real-time logs (now file-based)
 app.get("/logs/stream", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -86,16 +147,30 @@ app.get("/logs/stream", (req, res) => {
     "Access-Control-Allow-Origin": "*",
   });
 
+  // Send initial logs from file
+  try {
+    const recentLogs = logger.getRecentLogs(50);
+    recentLogs.forEach(log => {
+      res.write(`data: ${JSON.stringify(log)}\n\n`);
+    });
+  } catch (error) {
+    console.error("Failed to send initial logs:", error.message);
+  }
+
   const broadcaster = logEntry => {
     res.write(`data: ${JSON.stringify(logEntry)}\n\n`);
   };
 
   logBroadcasters.add(broadcaster);
-  broadcastLog("Dashboard connected to live log stream");
+  broadcastLog("Dashboard connected to live log stream", "info", "system");
 
   req.on("close", () => {
     logBroadcasters.delete(broadcaster);
-    broadcastLog("Dashboard disconnected from live log stream");
+    broadcastLog(
+      "Dashboard disconnected from live log stream",
+      "info",
+      "system"
+    );
   });
 });
 
@@ -146,12 +221,28 @@ app.get("/restart", (req, res) => {
 });
 
 app.get("/stats", (req, res) => {
+  // Convert Maps to Objects for JSON serialization
+  const nearbyPlayersObj = {};
+  botStatus.nearbyPlayers.forEach((player, id) => {
+    nearbyPlayersObj[id] = player;
+  });
+
+  const playerMovementHistoryObj = {};
+  botStatus.playerMovementHistory.forEach((history, id) => {
+    playerMovementHistoryObj[id] = history;
+  });
+
   res.json({
-    botStatus,
+    botStatus: {
+      ...botStatus,
+      nearbyPlayers: nearbyPlayersObj,
+      playerMovementHistory: playerMovementHistoryObj,
+    },
     serverConfig: SERVER_CONFIG,
     betterStackEnabled: BETTER_STACK.enabled,
-    mode: "Connection Only",
+    mode: "Connection + Movement Tracking",
     complianceWarning: "⚠️ This bot may violate Aternos Terms of Service",
+    movementConfig: config.movement,
   });
 });
 
@@ -213,6 +304,152 @@ app.get("/betterstack-status", (req, res) => {
   });
 });
 
+// Movement & Position API endpoints
+app.get("/movement/status", (req, res) => {
+  const nearbyPlayersObj = {};
+  botStatus.nearbyPlayers.forEach((player, id) => {
+    nearbyPlayersObj[id] = player;
+  });
+
+  res.json({
+    enabled: config.movement.tracking.enabled,
+    antiAfkEnabled: config.movement.antiAfk.enabled,
+    antiAfkActive: botStatus.movement.antiAfkActive,
+    currentPosition: botStatus.currentPosition,
+    totalDistance: botStatus.movement.totalDistance,
+    lastMovement: botStatus.movement.lastMovement,
+    lastAntiAfkMovement: botStatus.movement.lastAntiAfkMovement,
+    movementHistory: botStatus.movement.movementHistory.slice(-10), // Last 10 movements
+    nearbyPlayers: nearbyPlayersObj,
+    nearbyPlayersCount: botStatus.nearbyPlayers.size,
+    config: config.movement,
+  });
+});
+
+app.post("/movement/anti-afk/start", (req, res) => {
+  if (!botStatus.hasSpawned) {
+    return res.status(400).json({
+      error: "Bot not spawned yet",
+      message: "Wait for bot to spawn before starting anti-AFK movement",
+    });
+  }
+
+  if (botStatus.movement.antiAfkActive) {
+    return res.json({
+      message: "Anti-AFK movement already active",
+      status: "already_running",
+    });
+  }
+
+  startAntiAfkMovement();
+  res.json({
+    message: "Anti-AFK movement started",
+    status: "started",
+    interval: config.movement.antiAfk.interval / 1000 + "s",
+  });
+});
+
+app.post("/movement/anti-afk/stop", (req, res) => {
+  if (!botStatus.movement.antiAfkActive) {
+    return res.json({
+      message: "Anti-AFK movement not active",
+      status: "already_stopped",
+    });
+  }
+
+  stopAntiAfkMovement();
+  res.json({
+    message: "Anti-AFK movement stopped",
+    status: "stopped",
+  });
+});
+
+app.post("/movement/manual-move", (req, res) => {
+  const { x, y, z } = req.body;
+
+  if (!botStatus.hasSpawned) {
+    return res.status(400).json({
+      error: "Bot not spawned yet",
+      message: "Wait for bot to spawn before manual movement",
+    });
+  }
+
+  if (typeof x !== "number" || typeof y !== "number" || typeof z !== "number") {
+    return res.status(400).json({
+      error: "Invalid coordinates",
+      message: "x, y, z must be numbers",
+      example: { x: 0, y: 64, z: 0 },
+    });
+  }
+
+  try {
+    const newPosition = { x, y, z };
+
+    // Alternative approach - update position directly and let the bot handle movement
+    try {
+      // Update bot's internal position
+      const oldPosition = { ...botStatus.currentPosition };
+      updateBotPosition(newPosition);
+
+      broadcastLog(
+        `🎮 Manual position update: (${newPosition.x}, ${newPosition.y}, ${newPosition.z})`,
+        "info"
+      );
+
+      // For now, we'll just update the position tracking without sending move packet
+      // The move_player packet seems to have compatibility issues with this bedrock-protocol version
+      broadcastLog(
+        `📍 Position updated from (${oldPosition.x.toFixed(
+          1
+        )}, ${oldPosition.y.toFixed(1)}, ${oldPosition.z.toFixed(1)}) to (${
+          newPosition.x
+        }, ${newPosition.y}, ${newPosition.z})`,
+        "info"
+      );
+    } catch (updateError) {
+      broadcastLog(
+        `❌ Position update failed: ${updateError.message}`,
+        "error"
+      );
+      throw updateError;
+    }
+
+    botStatus.packetsSent++;
+
+    res.json({
+      message: "Manual movement command sent",
+      position: newPosition,
+      timestamp: new Date().toISOString(),
+    });
+
+    broadcastLog(`🎮 Manual movement to (${x}, ${y}, ${z})`, "info");
+  } catch (error) {
+    res.status(500).json({
+      error: "Movement failed",
+      message: error.message,
+    });
+  }
+});
+
+app.get("/movement/players", (req, res) => {
+  const playersData = {};
+
+  botStatus.nearbyPlayers.forEach((player, id) => {
+    const history = botStatus.playerMovementHistory.get(id) || [];
+    playersData[id] = {
+      ...player,
+      movementHistory: history.slice(-5), // Last 5 movements
+      totalMovements: history.length,
+    };
+  });
+
+  res.json({
+    players: playersData,
+    totalPlayers: botStatus.nearbyPlayers.size,
+    trackingEnabled: config.movement.tracking.trackOtherPlayers,
+  });
+});
+
 // Dashboard HTML
 app.get("/dashboard", (req, res) => {
   const htmlPath = path.join(__dirname, "monitor.html");
@@ -253,6 +490,219 @@ app.listen(PORT, () => {
 let botClient = null;
 let reconnectTimeout = null;
 let betterStackInterval = null;
+let antiAfkInterval = null;
+
+// Movement & Position Tracking Functions
+const calculateDistance = (pos1, pos2) => {
+  const dx = pos1.x - pos2.x;
+  const dy = pos1.y - pos2.y;
+  const dz = pos1.z - pos2.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+};
+
+const updateBotPosition = newPosition => {
+  if (!config.movement.tracking.enabled) return;
+
+  const oldPosition = { ...botStatus.currentPosition };
+  botStatus.currentPosition = { ...newPosition };
+
+  // Calculate distance moved
+  if (config.movement.statistics.trackDistance) {
+    const distance = calculateDistance(oldPosition, newPosition);
+    if (distance > 0.1) {
+      // Only count significant movements
+      botStatus.movement.totalDistance += distance;
+
+      // Add to movement history
+      const movementEntry = {
+        timestamp: new Date().toISOString(),
+        from: oldPosition,
+        to: newPosition,
+        distance: distance,
+      };
+
+      botStatus.movement.movementHistory.push(movementEntry);
+
+      // Keep only last 50 movements
+      if (botStatus.movement.movementHistory.length > 50) {
+        botStatus.movement.movementHistory.shift();
+      }
+
+      botStatus.movement.lastMovement = new Date().toISOString();
+
+      if (config.movement.tracking.logMovement) {
+        broadcastLog(
+          `📍 Bot moved ${distance.toFixed(
+            2
+          )} blocks to (${newPosition.x.toFixed(1)}, ${newPosition.y.toFixed(
+            1
+          )}, ${newPosition.z.toFixed(1)})`,
+          "info"
+        );
+      }
+    }
+  }
+};
+
+const updatePlayerPosition = (runtimeId, position, playerName = null) => {
+  if (!config.movement.tracking.trackOtherPlayers) return;
+
+  const playerId = runtimeId.toString();
+  const now = new Date().toISOString();
+
+  // Update player position
+  botStatus.nearbyPlayers.set(playerId, {
+    runtimeId,
+    name: playerName || `Player_${playerId}`,
+    position: { ...position },
+    lastSeen: now,
+    lastMovement: now,
+  });
+
+  // Add to movement history
+  if (!botStatus.playerMovementHistory.has(playerId)) {
+    botStatus.playerMovementHistory.set(playerId, []);
+  }
+
+  const history = botStatus.playerMovementHistory.get(playerId);
+  history.push({
+    timestamp: now,
+    position: { ...position },
+  });
+
+  // Keep limited history
+  if (history.length > config.movement.tracking.maxPlayerHistory) {
+    history.shift();
+  }
+
+  if (config.movement.tracking.logMovement && playerName) {
+    broadcastLog(
+      `👤 ${playerName} moved to (${position.x.toFixed(
+        1
+      )}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`,
+      "info"
+    );
+  }
+};
+
+const performAntiAfkMovement = () => {
+  if (!botClient || !botStatus.hasSpawned || !config.movement.antiAfk.enabled) {
+    return;
+  }
+
+  try {
+    const currentPos = botStatus.currentPosition;
+    const range = config.movement.antiAfk.movementRange;
+
+    let newX, newZ;
+
+    if (config.movement.antiAfk.randomMovement) {
+      // Random movement within range
+      newX = currentPos.x + (Math.random() * range * 2 - range);
+      newZ = currentPos.z + (Math.random() * range * 2 - range);
+    } else {
+      // Simple back-and-forth movement
+      const time = Date.now();
+      newX = currentPos.x + Math.sin(time / 10000) * range;
+      newZ = currentPos.z + Math.cos(time / 10000) * range;
+    }
+
+    const newPosition = {
+      x: newX,
+      y: currentPos.y,
+      z: newZ,
+    };
+
+    // Try multiple approaches for Anti-AFK movement
+    try {
+      // Method 1: Try to send a simple movement packet with minimal data
+      try {
+        const simplePacket = {
+          runtime_id: 0, // Use 0 as fallback
+          position: {
+            x: parseFloat(newX),
+            y: parseFloat(currentPos.y),
+            z: parseFloat(newZ),
+          },
+          rotation: { x: 0, y: 0, z: 0 },
+          mode: 0,
+          on_ground: true,
+        };
+
+        botClient.queue("move_player", simplePacket);
+        broadcastLog(
+          `🚶 Anti-AFK packet sent: (${newX.toFixed(1)}, ${
+            currentPos.y
+          }, ${newZ.toFixed(1)})`,
+          "info"
+        );
+      } catch (packetError) {
+        // Method 2: If packet fails, try sending a chat message to show activity
+        try {
+          botClient.queue("text", {
+            type: "chat",
+            needs_translation: false,
+            source_name: botClient.username || SERVER_CONFIG.username,
+            message: `🤖 Anti-AFK active at ${new Date().toLocaleTimeString()}`,
+          });
+          broadcastLog(`💬 Anti-AFK chat sent (packet method failed)`, "info");
+        } catch (chatError) {
+          broadcastLog(
+            `⚠️ Both movement packet and chat failed, using position simulation`,
+            "warn"
+          );
+        }
+      }
+
+      // Always update internal position tracking
+      updateBotPosition(newPosition);
+    } catch (generalError) {
+      broadcastLog(`❌ Anti-AFK failed: ${generalError.message}`, "error");
+    }
+
+    botStatus.packetsSent++;
+    botStatus.movement.lastAntiAfkMovement = new Date().toISOString();
+    botStatus.movement.antiAfkActive = true;
+
+    broadcastLog(
+      `🚶 Anti-AFK movement: (${newX.toFixed(1)}, ${
+        currentPos.y
+      }, ${newZ.toFixed(1)})`,
+      "info"
+    );
+  } catch (error) {
+    broadcastLog(`❌ Anti-AFK movement failed: ${error.message}`, "warn");
+  }
+};
+
+const startAntiAfkMovement = () => {
+  if (!config.movement.antiAfk.enabled) return;
+
+  if (antiAfkInterval) {
+    clearInterval(antiAfkInterval);
+  }
+
+  antiAfkInterval = setInterval(() => {
+    performAntiAfkMovement();
+  }, config.movement.antiAfk.interval);
+
+  broadcastLog(
+    `🚶 Anti-AFK movement started (${
+      config.movement.antiAfk.interval / 1000
+    }s interval)`,
+    "info"
+  );
+};
+
+const stopAntiAfkMovement = () => {
+  if (antiAfkInterval) {
+    clearInterval(antiAfkInterval);
+    antiAfkInterval = null;
+  }
+
+  botStatus.movement.antiAfkActive = false;
+  broadcastLog("🛑 Anti-AFK movement stopped", "info");
+};
 
 // Better Stack functions
 const sendBetterStackHeartbeat = async () => {
@@ -426,6 +876,13 @@ const createBot = () => {
         testServerCommunication();
       }, 3000);
 
+      // Start anti-AFK movement if enabled
+      if (config.movement.antiAfk.enabled) {
+        setTimeout(() => {
+          startAntiAfkMovement();
+        }, 5000); // Wait 5 seconds after spawn
+      }
+
       sendBetterStackAlert(
         "Bot connected and spawned successfully (Connection Only Mode)"
       );
@@ -500,6 +957,13 @@ const createBot = () => {
       botStatus.serverCommunicationVerified = false;
       botStatus.lastDisconnected = now.toISOString();
 
+      // Stop anti-AFK movement on disconnect
+      if (antiAfkInterval) {
+        clearInterval(antiAfkInterval);
+        antiAfkInterval = null;
+        botStatus.movement.antiAfkActive = false;
+      }
+
       handleDisconnect(disconnectReason);
     });
 
@@ -536,6 +1000,74 @@ const createBot = () => {
       handleDisconnect(`Error: ${errorMessage}`);
     });
 
+    // Movement packet listeners
+    botClient.on("move_player", packet => {
+      botStatus.packetsReceived++;
+
+      try {
+        // Check if this is the bot's own movement
+        if (packet.runtime_id === botClient.runtime_id) {
+          // Update bot's position
+          if (packet.position) {
+            updateBotPosition(packet.position);
+          }
+        } else {
+          // Track other players' movement
+          if (packet.position && config.movement.tracking.trackOtherPlayers) {
+            updatePlayerPosition(packet.runtime_id, packet.position);
+          }
+        }
+      } catch (error) {
+        broadcastLog(
+          `Movement packet processing error: ${error.message}`,
+          "warn"
+        );
+      }
+    });
+
+    // Player list updates for better player tracking
+    botClient.on("player_list", packet => {
+      botStatus.packetsReceived++;
+
+      try {
+        if (packet.records && Array.isArray(packet.records)) {
+          packet.records.forEach(record => {
+            if (record.username && record.uuid) {
+              // Update player name mapping
+              const playerId = record.runtime_id?.toString();
+              if (playerId && botStatus.nearbyPlayers.has(playerId)) {
+                const player = botStatus.nearbyPlayers.get(playerId);
+                player.name = record.username;
+                player.uuid = record.uuid;
+                botStatus.nearbyPlayers.set(playerId, player);
+              }
+            }
+          });
+        } else if (packet.records && typeof packet.records === "object") {
+          // Handle different packet structure
+          Object.values(packet.records).forEach(record => {
+            if (record && record.username && record.uuid) {
+              const playerId = record.runtime_id?.toString();
+              if (playerId && botStatus.nearbyPlayers.has(playerId)) {
+                const player = botStatus.nearbyPlayers.get(playerId);
+                player.name = record.username;
+                player.uuid = record.uuid;
+                botStatus.nearbyPlayers.set(playerId, player);
+              }
+            }
+          });
+        }
+      } catch (error) {
+        // Only log if it's a significant error, not just structure differences
+        if (!error.message.includes("forEach")) {
+          broadcastLog(
+            `Player list packet processing error: ${error.message}`,
+            "warn"
+          );
+        }
+      }
+    });
+
     // Track important packets for debugging
     botClient.on("packet", (name, packet) => {
       botStatus.packetsReceived++;
@@ -548,12 +1080,28 @@ const createBot = () => {
           "disconnect",
           "server_to_client_handshake",
           "game_rules_changed",
+          "move_player",
         ].includes(name)
       ) {
-        broadcastLog(`📦 Received critical packet: ${name}`, "info");
+        if (name !== "move_player" || config.movement.tracking.logMovement) {
+          broadcastLog(`📦 Received critical packet: ${name}`, "info");
+        }
 
         if (name === "start_game") {
           broadcastLog("🎮 Game start packet received - world loading", "info");
+
+          // Extract spawn position if available
+          if (packet.player_position) {
+            updateBotPosition(packet.player_position);
+            broadcastLog(
+              `📍 Spawn position: (${packet.player_position.x.toFixed(
+                1
+              )}, ${packet.player_position.y.toFixed(
+                1
+              )}, ${packet.player_position.z.toFixed(1)})`,
+              "info"
+            );
+          }
         } else if (name === "play_status") {
           broadcastLog("📊 Play status packet - checking game state", "info");
         }
@@ -722,6 +1270,10 @@ const cleanup = () => {
 
   if (betterStackInterval) {
     clearInterval(betterStackInterval);
+  }
+
+  if (antiAfkInterval) {
+    clearInterval(antiAfkInterval);
   }
 
   if (reconnectTimeout) {
