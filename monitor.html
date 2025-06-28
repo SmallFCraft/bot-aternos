@@ -92,6 +92,126 @@ body {
     100% { opacity: 1; }
 }
 
+/* Enhanced Log Styles */
+.log-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 12px;
+    padding: 0;
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #333;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.log-entry {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    transition: background-color 0.2s ease;
+}
+
+.log-entry:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-icon {
+    width: 20px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.log-time {
+    color: #9ca3af;
+    font-size: 11px;
+    width: 70px;
+    margin-right: 10px;
+    font-weight: 500;
+}
+
+.log-message {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.log-source {
+    color: #6b7280;
+    font-size: 10px;
+    margin-left: 10px;
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+}
+
+.log-entry.log-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid #ef4444;
+}
+
+.log-entry.log-warn {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid #f59e0b;
+}
+
+.log-entry.log-info {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid #10b981;
+}
+
+.log-entry.log-loading {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+    animation: pulse 2s infinite;
+}
+
+.log-control-btn {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.log-control-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-1px);
+}
+
+.log-control-btn:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar styling for log container */
+.log-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.log-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.5);
+}
+
 .metric {
     display: flex;
     justify-content: space-between;
@@ -369,17 +489,41 @@ body {
         <!-- Live Status Log -->
         <div class="card">
             <h3>📋 Live Server Log</h3>
-            <div style="margin-bottom: 10px; color: #cccccc; font-size: 14px;">
-                <span id="logConnectionStatus">🟡 Connecting to live stream...</span>
-                <button onclick="toggleLogStream()" id="logToggleBtn" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px;">
-                    ⏸️ Pause
-                </button>
-                <button onclick="clearLog()" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;">
-                    🗑️ Clear
-                </button>
+
+            <!-- Log Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="logConnectionStatus" style="font-size: 14px; font-weight: 500;">🟡 Connecting to live stream...</span>
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; animation: pulse 2s infinite;" id="logStatusIndicator"></div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="toggleLogStream()" id="logToggleBtn" class="log-control-btn">
+                        ⏸️ Pause
+                    </button>
+                    <button onclick="refreshLogs()" class="log-control-btn">
+                        🔄 Refresh
+                    </button>
+                    <button onclick="clearLog()" class="log-control-btn" style="background: linear-gradient(45deg, #dc2626, #b91c1c);">
+                        🗑️ Clear All
+                    </button>
+                </div>
             </div>
-            <div id="liveLog" style="background: #1a1a1a; border-radius: 10px; padding: 15px; max-height: 250px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #cccccc; border: 1px solid #333;">
-                <div style="color: #666;">Connecting to live log stream...</div>
+
+            <!-- Log Statistics -->
+            <div style="display: flex; gap: 15px; margin-bottom: 15px; font-size: 12px; color: #9ca3af;">
+                <span>📊 Total: <span id="logCount">0</span> entries</span>
+                <span>🕐 Last update: <span id="lastLogUpdate">-</span></span>
+                <span>📁 Source: File-based logging</span>
+            </div>
+
+            <!-- Log Container -->
+            <div id="liveLog" class="log-container">
+                <div class="log-entry log-loading">
+                    <span class="log-icon">🔄</span>
+                    <span class="log-time">--:--:--</span>
+                    <span class="log-message">Connecting to live log stream...</span>
+                </div>
             </div>
         </div>
 
@@ -395,50 +539,24 @@ body {
         let eventSource = null;
         let logStreamActive = true;
 
-        // Load initial logs from file
-        const loadInitialLogs = async () => {
-            try {
-                const response = await fetch('/logs/recent?lines=50');
-                const data = await response.json();
-
-                if (data.logs && Array.isArray(data.logs)) {
-                    // Clear existing logs and load from file
-                    logEntries = [];
-
-                    data.logs.forEach(logData => {
-                        addServerLogEntry(logData);
-                    });
-
-                    addLocalLogEntry(`Loaded ${data.logs.length} recent logs from file`);
-                } else {
-                    addLocalLogEntry('No previous logs found', 'warn');
-                }
-            } catch (error) {
-                addLocalLogEntry(`Failed to load initial logs: ${error.message}`, 'error');
-            }
-        };
-
         // Live log streaming from server
         const connectLogStream = () => {
             if (eventSource) {
                 eventSource.close();
             }
 
-            const statusElement = document.getElementById('logConnectionStatus');
-            statusElement.textContent = '🟡 Connecting to live stream...';
-            statusElement.style.color = '#fbbf24';
+            updateLogConnectionStatus('🟡 Connecting to live stream...', '#fbbf24', '#fbbf24');
 
             eventSource = new EventSource('/logs/stream');
-            
+
             eventSource.onopen = () => {
-                statusElement.textContent = '🟢 Connected to live stream';
-                statusElement.style.color = '#10b981';
+                updateLogConnectionStatus('🟢 Connected to live stream', '#10b981', '#10b981');
                 addLocalLogEntry('Dashboard connected to live server log');
             };
-            
+
             eventSource.onmessage = (event) => {
                 if (!logStreamActive) return;
-                
+
                 try {
                     const logData = JSON.parse(event.data);
                     addServerLogEntry(logData);
@@ -446,11 +564,10 @@ body {
                     console.error('Error parsing log data:', error);
                 }
             };
-            
+
             eventSource.onerror = () => {
-                statusElement.textContent = '🔴 Connection lost - Retrying...';
-                statusElement.style.color = '#ef4444';
-                
+                updateLogConnectionStatus('🔴 Connection lost - Retrying...', '#ef4444', '#ef4444');
+
                 // Auto-reconnect after 3 seconds
                 setTimeout(() => {
                     if (logStreamActive) {
@@ -464,31 +581,32 @@ body {
             const timestamp = new Date(logData.timestamp).toLocaleTimeString();
             const typeIcon = logData.type === 'error' ? '❌' : logData.type === 'warn' ? '⚠️' : 'ℹ️';
             const typeColor = logData.type === 'error' ? '#ef4444' : logData.type === 'warn' ? '#f59e0b' : '#10b981';
-            
+
             const entry = {
                 timestamp,
                 message: logData.message,
                 type: logData.type,
                 icon: typeIcon,
                 color: typeColor,
-                source: 'server'
+                source: logData.source || 'server'
             };
-            
+
             logEntries.unshift(entry);
-            
-            // Keep only last 25 entries
-            if (logEntries.length > 25) {
-                logEntries = logEntries.slice(0, 25);
+
+            // Keep only last 50 entries for better history
+            if (logEntries.length > 50) {
+                logEntries = logEntries.slice(0, 50);
             }
-            
+
             updateLiveLog();
+            updateLogStats();
         };
 
         const addLocalLogEntry = (message, type = 'info') => {
             const timestamp = new Date().toLocaleTimeString();
             const typeIcon = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : 'ℹ️';
             const typeColor = type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#6b7280';
-            
+
             const entry = {
                 timestamp,
                 message,
@@ -497,72 +615,100 @@ body {
                 color: typeColor,
                 source: 'dashboard'
             };
-            
+
             logEntries.unshift(entry);
-            
-            if (logEntries.length > 25) {
-                logEntries = logEntries.slice(0, 25);
+
+            if (logEntries.length > 50) {
+                logEntries = logEntries.slice(0, 50);
             }
-            
+
             updateLiveLog();
+            updateLogStats();
         };
 
         const updateLiveLog = () => {
             const logContainer = document.getElementById('liveLog');
-            logContainer.innerHTML = logEntries.map(entry => 
-                `<div style="margin: 3px 0; color: ${entry.color}; opacity: ${entry.source === 'dashboard' ? '0.7' : '1'};">
-                    ${entry.icon} [${entry.timestamp}] ${entry.message}
-                    ${entry.source === 'dashboard' ? ' <span style="color: #666; font-size: 10px;">(local)</span>' : ''}
-                </div>`
-            ).join('');
-            
+
+            if (logEntries.length === 0) {
+                logContainer.innerHTML = `
+                    <div class="log-entry log-loading">
+                        <span class="log-icon">📭</span>
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-message">No logs available</span>
+                    </div>
+                `;
+                return;
+            }
+
+            logContainer.innerHTML = logEntries.map(entry => {
+                const sourceLabel = entry.source === 'dashboard' ? 'local' :
+                                  entry.source === 'system' ? 'sys' : 'bot';
+                const opacity = entry.source === 'dashboard' ? '0.8' : '1';
+
+                return `
+                    <div class="log-entry log-${entry.type}" style="opacity: ${opacity};">
+                        <span class="log-icon">${entry.icon}</span>
+                        <span class="log-time">${entry.timestamp}</span>
+                        <span class="log-message">${entry.message}</span>
+                        <span class="log-source">${sourceLabel}</span>
+                    </div>
+                `;
+            }).join('');
+
             // Auto-scroll to top (newest entries)
             logContainer.scrollTop = 0;
+        };
+
+        const updateLogStats = () => {
+            document.getElementById('logCount').textContent = logEntries.length;
+            document.getElementById('lastLogUpdate').textContent = new Date().toLocaleTimeString();
+        };
+
+        const updateLogConnectionStatus = (status, color, indicator) => {
+            const statusElement = document.getElementById('logConnectionStatus');
+            const indicatorElement = document.getElementById('logStatusIndicator');
+
+            statusElement.textContent = status;
+            statusElement.style.color = color;
+
+            if (indicatorElement) {
+                indicatorElement.style.background = indicator;
+            }
         };
 
         const toggleLogStream = () => {
             logStreamActive = !logStreamActive;
             const btn = document.getElementById('logToggleBtn');
-            const status = document.getElementById('logConnectionStatus');
-            
+
             if (logStreamActive) {
                 btn.textContent = '⏸️ Pause';
                 btn.style.background = 'rgba(255,255,255,0.1)';
                 if (eventSource) {
-                    status.textContent = '🟢 Connected to live stream';
-                    status.style.color = '#10b981';
+                    updateLogConnectionStatus('🟢 Connected to live stream', '#10b981', '#10b981');
                 }
                 addLocalLogEntry('Live log stream resumed');
             } else {
                 btn.textContent = '▶️ Resume';
                 btn.style.background = 'rgba(34, 197, 94, 0.3)';
-                status.textContent = '⏸️ Live stream paused';
-                status.style.color = '#f59e0b';
+                updateLogConnectionStatus('⏸️ Live stream paused', '#f59e0b', '#f59e0b');
                 addLocalLogEntry('Live log stream paused');
             }
         };
 
-        const clearLog = async () => {
-            if (!confirm('Clear all logs? This will clear both dashboard and server log files.')) {
-                return;
-            }
-
+        const refreshLogs = async () => {
             try {
-                // Clear server logs
-                const response = await fetch('/logs/clear', { method: 'POST' });
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Clear dashboard logs
-                    logEntries = [];
-                    updateLiveLog();
-                    addLocalLogEntry('All logs cleared successfully');
-                } else {
-                    addLocalLogEntry(`Failed to clear server logs: ${data.error}`, 'error');
-                }
+                addLocalLogEntry('Refreshing logs from server...');
+                await loadInitialLogs();
+                addLocalLogEntry('Logs refreshed successfully');
             } catch (error) {
-                addLocalLogEntry(`Error clearing logs: ${error.message}`, 'error');
+                addLocalLogEntry(`Failed to refresh logs: ${error.message}`, 'error');
             }
+        };
+
+        const clearLog = () => {
+            logEntries = [];
+            updateLiveLog();
+            addLocalLogEntry('Log cleared');
         };
 
         const formatUptime = (seconds) => {
@@ -988,12 +1134,7 @@ body {
 
         // Initialize
         addLocalLogEntry('Dashboard initialized (Connection + Movement Tracking Mode)');
-
-        // Load initial logs from file first, then connect to live stream
-        loadInitialLogs().then(() => {
-            connectLogStream(); // Connect to live log stream
-        });
-
+        connectLogStream(); // Connect to live log stream
         updateStatus();
         updateInterval = setInterval(updateStatus, 15000); // Update every 15 seconds
 

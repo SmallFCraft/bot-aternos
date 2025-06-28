@@ -32,6 +32,31 @@ const BETTER_STACK = {
 // Initialize file logger
 const logger = new FileLogger("./logs/bot.log");
 
+// Helper function to handle BigInt serialization
+const serializeBigInt = obj => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (typeof obj === "bigint") {
+    return obj.toString();
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => serializeBigInt(item));
+  }
+
+  if (typeof obj === "object") {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = serializeBigInt(value);
+    }
+    return result;
+  }
+
+  return obj;
+};
+
 // Real-time log system for dashboard sync (now reads from file)
 let logBroadcasters = new Set();
 const broadcastLog = (message, type = "info", source = "bot") => {
@@ -232,18 +257,20 @@ app.get("/stats", (req, res) => {
     playerMovementHistoryObj[id] = history;
   });
 
-  res.json({
-    botStatus: {
+  const responseData = {
+    botStatus: serializeBigInt({
       ...botStatus,
       nearbyPlayers: nearbyPlayersObj,
       playerMovementHistory: playerMovementHistoryObj,
-    },
-    serverConfig: SERVER_CONFIG,
+    }),
+    serverConfig: serializeBigInt(SERVER_CONFIG),
     betterStackEnabled: BETTER_STACK.enabled,
     mode: "Connection + Movement Tracking",
     complianceWarning: "⚠️ This bot may violate Aternos Terms of Service",
-    movementConfig: config.movement,
-  });
+    movementConfig: serializeBigInt(config.movement),
+  };
+
+  res.json(serializeBigInt(responseData));
 });
 
 app.post("/setup-betterstack", (req, res) => {
@@ -308,10 +335,10 @@ app.get("/betterstack-status", (req, res) => {
 app.get("/movement/status", (req, res) => {
   const nearbyPlayersObj = {};
   botStatus.nearbyPlayers.forEach((player, id) => {
-    nearbyPlayersObj[id] = player;
+    nearbyPlayersObj[id] = serializeBigInt(player);
   });
 
-  res.json({
+  const responseData = {
     enabled: config.movement.tracking.enabled,
     antiAfkEnabled: config.movement.antiAfk.enabled,
     antiAfkActive: botStatus.movement.antiAfkActive,
@@ -323,7 +350,9 @@ app.get("/movement/status", (req, res) => {
     nearbyPlayers: nearbyPlayersObj,
     nearbyPlayersCount: botStatus.nearbyPlayers.size,
     config: config.movement,
-  });
+  };
+
+  res.json(serializeBigInt(responseData));
 });
 
 app.post("/movement/anti-afk/start", (req, res) => {
@@ -436,18 +465,29 @@ app.get("/movement/players", (req, res) => {
 
   botStatus.nearbyPlayers.forEach((player, id) => {
     const history = botStatus.playerMovementHistory.get(id) || [];
+
+    // Serialize player data and history separately
+    const serializedPlayer = serializeBigInt(player);
+    const serializedHistory = history
+      .slice(-5)
+      .map(entry => serializeBigInt(entry));
+
     playersData[id] = {
-      ...player,
-      movementHistory: history.slice(-5), // Last 5 movements
+      ...serializedPlayer,
+      movementHistory: serializedHistory,
       totalMovements: history.length,
     };
   });
 
-  res.json({
+  const responseData = {
     players: playersData,
     totalPlayers: botStatus.nearbyPlayers.size,
-    trackingEnabled: config.movement.tracking.trackOtherPlayers,
-  });
+    trackingEnabled: serializeBigInt(
+      config.movement.tracking.trackOtherPlayers
+    ),
+  };
+
+  res.json(serializeBigInt(responseData));
 });
 
 // Dashboard HTML
@@ -615,43 +655,164 @@ const performAntiAfkMovement = () => {
 
     // Try multiple approaches for Anti-AFK movement
     try {
-      // Method 1: Try to send a simple movement packet with minimal data
-      try {
-        const simplePacket = {
-          runtime_id: 0, // Use 0 as fallback
-          position: {
-            x: parseFloat(newX),
-            y: parseFloat(currentPos.y),
-            z: parseFloat(newZ),
-          },
-          rotation: { x: 0, y: 0, z: 0 },
-          mode: 0,
-          on_ground: true,
-        };
+      let movementSuccess = false;
 
-        botClient.queue("move_player", simplePacket);
-        broadcastLog(
-          `🚶 Anti-AFK packet sent: (${newX.toFixed(1)}, ${
-            currentPos.y
-          }, ${newZ.toFixed(1)})`,
-          "info"
-        );
-      } catch (packetError) {
-        // Method 2: If packet fails, try sending a chat message to show activity
+      // Method 1: Try proper Bedrock movement packet
+      if (
+        botClient &&
+        botClient.entityId &&
+        typeof botClient.entityId !== "undefined"
+      ) {
         try {
-          botClient.queue("text", {
-            type: "chat",
-            needs_translation: false,
-            source_name: botClient.username || SERVER_CONFIG.username,
-            message: `🤖 Anti-AFK active at ${new Date().toLocaleTimeString()}`,
-          });
-          broadcastLog(`💬 Anti-AFK chat sent (packet method failed)`, "info");
-        } catch (chatError) {
+          // Ensure entity ID is properly converted
+          const entityId =
+            typeof botClient.entityId === "bigint"
+              ? Number(botClient.entityId)
+              : botClient.entityId;
+
+          const movePacket = {
+            runtime_id: entityId,
+            position: {
+              x: parseFloat(newX),
+              y: parseFloat(currentPos.y),
+              z: parseFloat(newZ),
+            },
+            rotation: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            mode: 0, // Normal movement
+            on_ground: true,
+            ridden_runtime_id: 0,
+            teleport: {
+              cause: 0,
+              source_entity_type: 0,
+            },
+            tick: BigInt(Date.now()),
+          };
+
+          botClient.queue("move_player", movePacket);
+          movementSuccess = true;
           broadcastLog(
-            `⚠️ Both movement packet and chat failed, using position simulation`,
+            `🚶 Anti-AFK movement packet sent: (${newX.toFixed(1)}, ${
+              currentPos.y
+            }, ${newZ.toFixed(1)}) [Entity ID: ${entityId}]`,
+            "info"
+          );
+        } catch (packetError) {
+          broadcastLog(
+            `⚠️ Movement packet failed: ${packetError.message}`,
             "warn"
           );
         }
+      } else {
+        broadcastLog(
+          `⚠️ Cannot send movement packet: ${
+            !botClient
+              ? "No client"
+              : `Entity ID: ${
+                  botClient.entityId
+                } (${typeof botClient.entityId})`
+          }`,
+          "warn"
+        );
+      }
+
+      // Method 2: Try animate packet to show activity
+      if (!movementSuccess && botClient.entityId) {
+        try {
+          const entityId =
+            typeof botClient.entityId === "bigint"
+              ? Number(botClient.entityId)
+              : botClient.entityId;
+
+          botClient.queue("animate", {
+            action_id: 1, // Swing arm animation
+            runtime_id: entityId,
+          });
+          movementSuccess = true;
+          broadcastLog(`🎭 Anti-AFK animation sent`, "info");
+        } catch (animateError) {
+          broadcastLog(
+            `⚠️ Animation packet failed: ${animateError.message}`,
+            "warn"
+          );
+        }
+      }
+
+      // Method 3: Try player action packet as alternative
+      if (!movementSuccess && botClient.entityId) {
+        try {
+          const entityId =
+            typeof botClient.entityId === "bigint"
+              ? Number(botClient.entityId)
+              : botClient.entityId;
+
+          botClient.queue("player_action", {
+            runtime_id: entityId,
+            action: 5, // Start break action to show activity
+            coordinates: {
+              x: parseInt(newX),
+              y: parseInt(currentPos.y),
+              z: parseInt(newZ),
+            },
+            face: 0,
+          });
+          movementSuccess = true;
+          broadcastLog(`🎯 Anti-AFK action packet sent`, "info");
+        } catch (actionError) {
+          broadcastLog(
+            `⚠️ Action packet failed: ${actionError.message}`,
+            "warn"
+          );
+        }
+      }
+
+      // Method 4: Try inventory action to show activity
+      if (!movementSuccess && botClient.entityId) {
+        try {
+          const entityId =
+            typeof botClient.entityId === "bigint"
+              ? Number(botClient.entityId)
+              : botClient.entityId;
+
+          botClient.queue("mob_equipment", {
+            runtime_id: entityId,
+            item: {
+              network_id: 0,
+              count: 0,
+              metadata: 0,
+              has_stack_id: false,
+              stack_id: 0,
+              block_runtime_id: 0,
+              extra: {
+                has_nbt: false,
+                nbt: Buffer.alloc(0),
+                can_place_on: [],
+                can_destroy: [],
+              },
+            },
+            inventory_slot: 0,
+            hotbar_slot: 0,
+            window_id: 0,
+          });
+          movementSuccess = true;
+          broadcastLog(`🎒 Anti-AFK equipment packet sent`, "info");
+        } catch (equipError) {
+          broadcastLog(
+            `⚠️ Equipment packet failed: ${equipError.message}`,
+            "warn"
+          );
+        }
+      }
+
+      // Method 4: Fallback to position simulation only
+      if (!movementSuccess) {
+        broadcastLog(
+          `⚠️ All movement packets failed, using position simulation only`,
+          "warn"
+        );
       }
 
       // Always update internal position tracking
@@ -835,9 +996,23 @@ const createBot = () => {
     });
 
     // Enhanced spawn detection - wait for game_rule or start_game packets
-    botClient.on("start_game", () => {
+    botClient.on("start_game", packet => {
       connectionPhase = "game_starting";
       broadcastLog("🎮 Game start packet received - loading world...", "info");
+
+      // Store entity ID for movement packets
+      if (packet.runtime_entity_id) {
+        botClient.entityId = packet.runtime_entity_id;
+        broadcastLog(`🆔 Bot entity ID: ${packet.runtime_entity_id}`, "info");
+      } else if (packet.entity_unique_id) {
+        botClient.entityId = packet.entity_unique_id;
+        broadcastLog(
+          `🆔 Bot entity ID (unique): ${packet.entity_unique_id}`,
+          "info"
+        );
+      } else {
+        broadcastLog(`⚠️ No entity ID found in start_game packet`, "warn");
+      }
     });
 
     // Critical: Wait for proper spawn before claiming success
@@ -1025,46 +1200,155 @@ const createBot = () => {
       }
     });
 
-    // Player list updates for better player tracking
+    // Enhanced player tracking with multiple packet types
     botClient.on("player_list", packet => {
       botStatus.packetsReceived++;
 
       try {
+        // Debug log packet structure (only first few times)
+        if (botStatus.packetsReceived <= 5) {
+          broadcastLog(
+            `🔍 Player list packet: ${JSON.stringify(packet, null, 2).substring(
+              0,
+              300
+            )}...`,
+            "info"
+          );
+        }
+
+        let playersFound = 0;
+
         if (packet.records && Array.isArray(packet.records)) {
           packet.records.forEach(record => {
-            if (record.username && record.uuid) {
-              // Update player name mapping
-              const playerId = record.runtime_id?.toString();
-              if (playerId && botStatus.nearbyPlayers.has(playerId)) {
-                const player = botStatus.nearbyPlayers.get(playerId);
-                player.name = record.username;
-                player.uuid = record.uuid;
-                botStatus.nearbyPlayers.set(playerId, player);
+            if (record.username) {
+              playersFound++;
+              const playerId =
+                record.runtime_id?.toString() ||
+                record.entity_unique_id?.toString();
+
+              if (playerId) {
+                // Create or update player entry
+                const playerData = {
+                  runtimeId: record.runtime_id || record.entity_unique_id,
+                  name: record.username,
+                  uuid: record.uuid || "unknown",
+                  lastSeen: new Date().toISOString(),
+                  lastMovement: new Date().toISOString(),
+                  position: botStatus.nearbyPlayers.get(playerId)?.position || {
+                    x: 0,
+                    y: 64,
+                    z: 0,
+                  },
+                };
+
+                botStatus.nearbyPlayers.set(playerId, playerData);
+                broadcastLog(
+                  `👤 Player updated: ${record.username} (ID: ${playerId})`,
+                  "info"
+                );
               }
             }
           });
         } else if (packet.records && typeof packet.records === "object") {
-          // Handle different packet structure
+          // Handle object-based records
           Object.values(packet.records).forEach(record => {
-            if (record && record.username && record.uuid) {
-              const playerId = record.runtime_id?.toString();
-              if (playerId && botStatus.nearbyPlayers.has(playerId)) {
-                const player = botStatus.nearbyPlayers.get(playerId);
-                player.name = record.username;
-                player.uuid = record.uuid;
-                botStatus.nearbyPlayers.set(playerId, player);
+            if (record && record.username) {
+              playersFound++;
+              const playerId =
+                record.runtime_id?.toString() ||
+                record.entity_unique_id?.toString();
+
+              if (playerId) {
+                const playerData = {
+                  runtimeId: record.runtime_id || record.entity_unique_id,
+                  name: record.username,
+                  uuid: record.uuid || "unknown",
+                  lastSeen: new Date().toISOString(),
+                  lastMovement: new Date().toISOString(),
+                  position: botStatus.nearbyPlayers.get(playerId)?.position || {
+                    x: 0,
+                    y: 64,
+                    z: 0,
+                  },
+                };
+
+                botStatus.nearbyPlayers.set(playerId, playerData);
+                broadcastLog(
+                  `👤 Player updated: ${record.username} (ID: ${playerId})`,
+                  "info"
+                );
               }
             }
           });
         }
-      } catch (error) {
-        // Only log if it's a significant error, not just structure differences
-        if (!error.message.includes("forEach")) {
+
+        if (playersFound > 0) {
           broadcastLog(
-            `Player list packet processing error: ${error.message}`,
-            "warn"
+            `📋 Player list updated: ${playersFound} players found`,
+            "info"
           );
         }
+      } catch (error) {
+        broadcastLog(
+          `❌ Player list processing error: ${error.message}`,
+          "warn"
+        );
+      }
+    });
+
+    // Listen for add_player packets (when players join)
+    botClient.on("add_player", packet => {
+      botStatus.packetsReceived++;
+
+      try {
+        if (packet.username && packet.runtime_id) {
+          const playerId = packet.runtime_id.toString();
+          const playerData = {
+            runtimeId: packet.runtime_id,
+            name: packet.username,
+            uuid: packet.uuid || "unknown",
+            lastSeen: new Date().toISOString(),
+            lastMovement: new Date().toISOString(),
+            position: { x: 0, y: 64, z: 0 },
+          };
+
+          botStatus.nearbyPlayers.set(playerId, playerData);
+          broadcastLog(
+            `🎮 Player joined: ${packet.username} (ID: ${playerId})`,
+            "info"
+          );
+        }
+      } catch (error) {
+        broadcastLog(
+          `❌ Add player processing error: ${error.message}`,
+          "warn"
+        );
+      }
+    });
+
+    // Listen for remove_player packets (when players leave)
+    botClient.on("remove_player", packet => {
+      botStatus.packetsReceived++;
+
+      try {
+        if (packet.runtime_id) {
+          const playerId = packet.runtime_id.toString();
+          const player = botStatus.nearbyPlayers.get(playerId);
+
+          if (player) {
+            broadcastLog(
+              `👋 Player left: ${player.name} (ID: ${playerId})`,
+              "info"
+            );
+            botStatus.nearbyPlayers.delete(playerId);
+            botStatus.playerMovementHistory.delete(playerId);
+          }
+        }
+      } catch (error) {
+        broadcastLog(
+          `❌ Remove player processing error: ${error.message}`,
+          "warn"
+        );
       }
     });
 

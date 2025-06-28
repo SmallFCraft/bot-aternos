@@ -9,7 +9,7 @@ module.exports = {
 
   // ===== BOT CONFIGURATION =====
   bot: {
-    username: process.env.BOT_USERNAME,
+    username: process.env.BOT_USERNAME || "LOADING99",
     maxReconnectAttempts: parseInt(process.env.MAX_RECONNECT_ATTEMPTS) || 50,
     isOfflineMode: process.env.OFFLINE_MODE === "true", // Crack server support
     skipAuthentication: process.env.SKIP_AUTH === "true",
@@ -76,7 +76,7 @@ module.exports = {
     crackServer: {
       isOfflineMode: true,
       skipAuthentication: true,
-      username: process.env.BOT_USERNAME,
+      username: process.env.BOT_USERNAME || "LOADING99",
     },
 
     // Preset cho server premium/online
