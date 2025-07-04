@@ -1,20 +1,15 @@
-# 🤖 Multi-Bot Aternos Keep-Alive System
+# 🤖 Advanced Multi-Bot Management System
 
-**Advanced Multi-Bot Management System for Aternos Bedrock Servers**
-
-> ⚠️ **MIGRATION NOTICE**: This project has been upgraded to support multiple bots!
->
-> - **New Users**: Use `npm start` to run the new multi-bot system
-> - **Existing Users**: See [MIGRATION-GUIDE.md](MIGRATION-GUIDE.md) for upgrade instructions
-> - **Legacy System**: Use `npm run old` to run the old single-bot system
+**Professional Multi-Bot Management System for Aternos Bedrock Servers**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![bedrock-protocol](https://img.shields.io/badge/bedrock--protocol-3.46.0-blue.svg)](https://www.npmjs.com/package/bedrock-protocol)
-[![Multi-Bot](https://img.shields.io/badge/Multi--Bot-Supported-brightgreen.svg)](#features)
-[![Better Stack](https://img.shields.io/badge/Better%20Stack-Integrated-blue.svg)](#better-stack-monitoring)
+[![bedrock-protocol](https://img.shields.io/badge/bedrock--protocol-3.5.1-blue.svg)](https://www.npmjs.com/package/bedrock-protocol)
+[![Multi-Bot](https://img.shields.io/badge/Multi--Bot-Unlimited-brightgreen.svg)](#features)
+[![Better Stack](https://img.shields.io/badge/Better%20Stack-Integrated-blue.svg)](#monitoring)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](#deployment)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-**Advanced Minecraft Bedrock Edition bot với dashboard web, monitoring, và nhiều tính năng mở rộng.**
+**🚀 Production-ready multi-bot system với modern dashboard, professional monitoring, và comprehensive management features.**
 
 ## ⚠️ **IMPORTANT DISCLAIMER**
 
@@ -24,38 +19,48 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 
 ---
 
-## � **Key Features**
+## 🎯 **Key Features**
 
-### 🎯 **Core Bot Features**
+### 🤖 **Multi-Bot Management**
 
-- ✅ **24/7 Keep-Alive** - Duy trì server Aternos hoạt động
-- ✅ **Auto Reconnect** - Tự động kết nối lại khi mất kết nối
-- ✅ **Multi-Version Support** - Hỗ trợ Minecraft Bedrock 1.16 → 1.21.90
-- ✅ **Crack/Premium Mode** - Hỗ trợ cả server crack và premium
-- ✅ **Real-time Dashboard** - Web interface với live monitoring
+- ✅ **Unlimited Bots** - Manage multiple bots across different servers
+- ✅ **Individual Configuration** - Per-bot settings and customization
+- ✅ **Bulk Operations** - Start/stop all bots with one click
+- ✅ **Real-time Monitoring** - Live status updates for all bots
+- ✅ **Per-bot Logging** - Separate log files for each bot
 
-### 🛠️ **Advanced Features (bedrock-protocol)**
+### 🎨 **Modern Dashboard**
 
-- 🔐 **Authentication & Encryption** - Xbox Live authentication
-- 📦 **Packet Management** - Parse/serialize packets as JavaScript objects
-- 🔄 **Auto Keep-Alive** - Tự động respond keep-alive packets
-- 🌐 **Proxy Support** - MITM connections và proxy
-- 📊 **Server Ping** - Kiểm tra status server
-- 💬 **Chat Integration** - Gửi/nhận chat messages
-- 🎮 **Game Events** - Listen game events và player actions
+- ✅ **Responsive Web UI** - Professional dark theme interface
+- ✅ **Real-time Updates** - Live bot status and log streaming
+- ✅ **Bot Creation/Editing** - Easy bot management through web interface
+- ✅ **Statistics Dashboard** - Comprehensive system and bot statistics
+- ✅ **Better Stack Integration** - Professional monitoring setup
 
-### 🚶 **Movement & Position Tracking**
+### 🔧 **Core Bot Features**
 
-- 📍 **Real-time Position Tracking** - Track bot's current position and movement
-- 🚶 **Anti-AFK Movement** - Automatic movement to prevent AFK detection
-- 👥 **Player Tracking** - Monitor nearby players and their positions
-- 📊 **Movement Statistics** - Distance traveled, movement history
-- 🎮 **Manual Movement** - Control bot movement via dashboard
-- ⚙️ **Configurable Settings** - Customizable movement patterns and intervals
+- ✅ **24/7 Keep-Alive** - Maintain Aternos server activity
+- ✅ **Auto Reconnect** - Intelligent reconnection with exponential backoff
+- ✅ **Anti-AFK Movement** - Configurable movement patterns
+- ✅ **Multi-Version Support** - Minecraft Bedrock 1.16 → 1.21.90
+- ✅ **Offline/Online Mode** - Support for both cracked and premium servers
+
+### 📊 **Professional Monitoring**
+
+- ✅ **Better Stack Integration** - Professional uptime monitoring
+- ✅ **Health Check Endpoints** - Production-ready health monitoring
+- ✅ **Real-time Logging** - File-based logging with live streaming
+- ✅ **Error Handling** - Comprehensive error tracking and recovery
+- ✅ **Performance Metrics** - System and bot performance monitoring
 
 ## 🚀 **Quick Start**
 
-### **Multi-Bot System (Recommended)**
+### **Prerequisites**
+
+- Node.js 18+
+- NPM/Yarn
+
+### **Installation**
 
 ```bash
 # Clone repository
@@ -65,195 +70,240 @@ cd bot-aternos
 # Install dependencies
 npm install
 
+# Configure environment (optional)
+cp .env.example .env
+# Edit .env with your settings
+
 # Start multi-bot system
 npm start
-
-# Open dashboard
-# http://localhost:3000
 ```
 
-### **Legacy Single-Bot System**
+### **Access Dashboard**
 
-```bash
-# Run old system (if needed)
-npm run old
+Open your browser and navigate to: **http://localhost:3000**
+
+🎯 **Create your first bot through the web dashboard!**
+
+### **Environment Configuration**
+
+Create a `.env` file in the root directory:
+
+```env
+# Environment
+NODE_ENV=production
+
+# Better Stack Monitoring
+BETTER_STACK_ENABLED=true
+BETTER_STACK_API_KEY=your_api_key_here
+BETTER_STACK_HEARTBEAT=https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY
+
+# Default Server Settings
+SERVER_HOST=your-server.aternos.me
+SERVER_PORT=19132
+MC_VERSION=1.21.90
+
+# Default Bot Settings
+BOT_USERNAME=YourBotName
+DEFAULT_OFFLINE_MODE=true
+DEFAULT_ANTI_AFK_ENABLED=true
+DEFAULT_ANTI_AFK_INTERVAL=30000
+DEFAULT_MOVEMENT_RANGE=2.0
+DEFAULT_MAX_RECONNECT_ATTEMPTS=50
+
+# API Server
+PORT=3000
 ```
 
-**🎯 Create your first bot through the web dashboard!**
-
-### Prerequisites
-
-- Node.js 18+
-- NPM/Yarn
-
-### Migration from Old System
-
-If you're upgrading from the single-bot system:
+### **Available Scripts**
 
 ```bash
-# Backup and migrate
-node migrate.js
-
-# Check migration-config.json for suggested settings
-cat migration-config.json
-
-# Monitoring (Optional)
-BETTER_STACK_HEARTBEAT_URL=https://betterstack.com/api/v1/heartbeat/YOUR_KEY
-
-# Movement & Position Tracking
-ANTI_AFK_ENABLED=true
-ANTI_AFK_INTERVAL=30000
-MOVEMENT_RANGE=2.0
-POSITION_TRACKING_ENABLED=true
-TRACK_OTHER_PLAYERS=true
-```
-
-### Run Bot
-
-```bash
-# Start bot
-npm start
-
-# Development mode với auto-restart
-npm run dev
-
-# Crack server preset
-npm run crack
-
-# Premium server preset
-npm run premium
-```
-
-### Access Dashboard
-
-- **Web Dashboard:** http://localhost:3000/dashboard
-- **Health Check:** http://localhost:3000/health
-- **API Status:** http://localhost:3000/stats
-- **Movement Status:** http://localhost:3000/movement/status
-- **Players Data:** http://localhost:3000/movement/players
-
-### Movement API Endpoints
-
-```bash
-# Get movement status
-GET /movement/status
-
-# Start/Stop Anti-AFK movement
-POST /movement/anti-afk/start
-POST /movement/anti-afk/stop
-
-# Manual movement control
-POST /movement/manual-move
-Content-Type: application/json
-{"x": 10, "y": 64, "z": 5}
-
-# Get nearby players data
-GET /movement/players
+npm start              # Start multi-bot system
+npm run dev           # Development mode with auto-reload
+npm run legacy        # Run legacy single-bot system
+npm test              # Test the system
+npm run logs          # View all bot logs
+npm run health        # Check system health
+npm run fix-security  # Fix security vulnerabilities
+npm run clean-install # Clean npm install
 ```
 
 ---
 
-## 🔧 **Security Fixes**
+## 🎨 **Dashboard Features**
 
-✅ **All security vulnerabilities have been resolved!**
+Access the modern web dashboard at: **http://localhost:3000**
 
-### Fixed Issues
+### 🎯 **Main Features**
 
-- **6 Security Vulnerabilities** → 0 vulnerabilities ✅
-- **Deprecated Warnings** → Suppressed via `.npmrc` ✅
-- **Dependencies Updated** → Latest secure versions ✅
+- 🤖 **Multi-Bot Management** - Create, edit, start, stop, and delete bots
+- 📊 **Real-time Statistics** - System uptime, bot count, performance metrics
+- 📋 **Live Log Streaming** - Real-time logs from all bots via Server-Sent Events
+- 💓 **Better Stack Integration** - Professional monitoring setup and status
+- 🔄 **Bulk Operations** - Start/stop all bots with one click
 
-### Security Tools
+### 🔧 **Bot Controls**
+
+- ▶️ **Start/Stop** - Individual bot control
+- 🔄 **Restart** - Restart specific bots
+- ✏️ **Edit** - Modify bot configuration
+- � **Anti-AFK Toggle** - Enable/disable movement
+- 📝 **View Logs** - Per-bot log viewing
+- 🗑️ **Delete** - Remove bots
+
+### 📊 **Monitoring Dashboard**
+
+- 🟢 **Real-time Status** - Live bot connection status
+- 📈 **Performance Metrics** - Packets sent/received, uptime
+- 🔍 **Health Checks** - System and individual bot health
+- � **Responsive Design** - Works on desktop and mobile
+
+---
+
+## 🔌 **API Endpoints**
+
+### **Bot Management**
 
 ```bash
-# Run security fix script
-npm run fix-security
+GET    /api/bots                    # List all bots
+POST   /api/bots                    # Create new bot
+GET    /api/bots/:id                # Get bot details
+PUT    /api/bots/:id                # Update bot configuration
+DELETE /api/bots/:id                # Delete bot
+POST   /api/bots/:id/start          # Start bot
+POST   /api/bots/:id/stop           # Stop bot
+POST   /api/bots/:id/restart        # Restart bot
+POST   /api/bots/start-all          # Start all bots
+POST   /api/bots/stop-all           # Stop all bots
+```
 
-# Clean install
-npm run clean-install
+### **System & Monitoring**
 
-# Check security status
-npm audit
+```bash
+GET    /api/health                  # System health check
+GET    /api/logs/stream             # Live log stream (SSE)
+GET    /api/logs/recent             # Recent log entries
+GET    /api/betterstack/status      # Better Stack status
+POST   /api/betterstack/setup       # Configure Better Stack
+POST   /api/betterstack/test        # Test heartbeat
 ```
 
 ---
 
-## 🎛️ **Advanced Configuration**
+## 📊 **Better Stack Monitoring**
+
+### **Setup Guide**
+
+1. **Access Dashboard** - Click "Monitor Setup Guide" in the dashboard
+2. **Create Monitor** - Follow step-by-step instructions
+3. **Configure Alerts** - Set up email/SMS notifications
+4. **Status Page** - Create public status page
+
+### **Production Monitoring**
+
+- **Health Endpoint**: `https://your-app.onrender.com/api/health`
+- **Check Frequency**: Every 1 minute
+- **Timeout**: 30-60 seconds
+- **Expected Status**: 200 OK
+
+### **Health Check Response**
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-07-04T08:37:25.566Z",
+  "uptime": "12m 30s",
+  "bots": {
+    "total": 2,
+    "running": 1,
+    "stopped": 1
+  },
+  "system": {
+    "memory": "45MB",
+    "nodeVersion": "v20.19.3",
+    "platform": "linux"
+  },
+  "betterStack": {
+    "enabled": true,
+    "lastHeartbeat": "2025-07-04T08:37:25.566Z"
+  }
+}
+```
 
 ---
 
-## 📊 **Dashboard Features**
+## 🏗️ **Project Structure**
 
-Access dashboard at: <http://localhost:3000/dashboard>
-
-### Features
-
-- 🔴🟢 **Real-time bot status**
-- 📋 **Live server logs** (SSE stream)
-- 📈 **Statistics tracking**
-- ⚙️ **Method switching** via API
-- 💗 **Better Stack setup**
-- ⚠️ **Compliance warnings**
-
-### API Endpoints
-
-```bash
-GET  /                    # Bot status
-GET  /health             # Health check
-GET  /stats              # Detailed statistics
-GET  /restart            # Restart bot
-GET  /compliance         # Policy violation info
-POST /setup-betterstack  # Configure monitoring
 ```
-
-### bedrock-protocol Extended Features
-
-```javascript
-// Chat integration
-client.on("text", packet => {
-  console.log(`${packet.source_name}: ${packet.message}`);
-});
-
-// Send chat message
-client.queue("text", {
-  type: "chat",
-  needs_translation: false,
-  source_name: client.username,
-  message: "Hello from bot!",
-});
-
-// Movement packets (experimental)
-client.queue("move_player", {
-  runtime_id: client.runtime_id,
-  position: { x: 0, y: 64, z: 0 },
-  rotation: { x: 0, y: 0, z: 0 },
-});
-
-// Inventory management
-client.on("inventory_transaction", packet => {
-  // Handle inventory changes
-});
-
-// Server ping
-const { ping } = require("bedrock-protocol");
-ping({ host: "server.com", port: 19132 }).then(console.log);
+📁 Multi-Bot System/
+├── 📁 src/                     # Source code (MVC Architecture)
+│   ├── 📁 core/               # Core business logic
+│   │   ├── BotManager.js      # Multi-bot orchestrator
+│   │   ├── Bot.js             # Individual bot logic
+│   │   ├── Logger.js          # Enhanced logging system
+│   │   └── BetterStackMonitor.js # Professional monitoring
+│   ├── 📁 api/                # API layer
+│   │   ├── server.js          # Express server
+│   │   └── 📁 routes/         # RESTful endpoints
+│   └── 📁 config/             # Configuration management
+│       └── default.js         # Environment-based config
+├── 📁 public/                 # Static files
+│   └── dashboard.html         # Modern multi-bot dashboard
+├── 📁 data/                   # Persistent storage
+│   ├── bots.json             # Bot configurations
+│   └── betterstack-config.json # Monitoring settings
+├── 📁 logs/                   # Log files
+│   └── 📁 bots/              # Per-bot log files
+├── 📄 index.js               # Main entry point
+├── 📄 index-legacy.js        # Legacy single-bot system
+├── 📄 .env                   # Environment variables
+├── 📄 package.json           # Dependencies and scripts
+└── 📄 README.md              # This documentation
 ```
 
 ---
 
 ## 🐛 **Troubleshooting**
 
-### Bot Not Working?
+### **Common Issues**
 
-1. **Check server status** on Aternos dashboard
-2. **Verify credentials** (username, server address)
-3. **Check live logs** in dashboard for error details
+1. **Bot won't connect**
 
-### Common Issues:
+   - ✅ Check server status on Aternos dashboard
+   - ✅ Verify server address and port
+   - ✅ Check if server is online and accepting connections
 
-- **"Movement ignored"** → Use `chat_keepalive` or `command_keepalive`
-- **Connection refused** → Server may be offline
-- **Authentication failed** → Set `OFFLINE_MODE=true` for cracked servers
+2. **Movement packet errors**
+
+   - ✅ Wait for bot to fully spawn before movement
+   - ✅ Check entity ID is properly captured
+   - ✅ Verify anti-AFK settings in bot configuration
+
+3. **Dashboard not loading**
+
+   - ✅ Ensure port 3000 is not in use
+   - ✅ Check firewall settings
+   - ✅ Verify all dependencies are installed
+
+4. **Better Stack not working**
+   - ✅ Check .env configuration
+   - ✅ Verify heartbeat URL is correct
+   - ✅ Test production endpoint manually
+
+### **Debug Commands**
+
+```bash
+# Check system health
+npm run health
+
+# View all logs
+npm run logs
+
+# Test production endpoint
+curl https://your-app.onrender.com/api/health
+
+# Check for errors
+npm audit
+```
 
 ---
 
@@ -261,19 +311,19 @@ ping({ host: "server.com", port: 19132 }).then(console.log);
 
 Instead of violating Aternos ToS, consider these **bot-friendly** platforms:
 
-### 🆓 **Free Options:**
+### 🆓 **Free Options**
 
 - **Minehut** - Free, allows bots, good uptime
 - **FreeMcServer.net** - Free, bot-friendly
 - **Server.pro** - Free tier, automation allowed
 
-### 🏆 **Recommended:**
+### 🏆 **Recommended**
 
 - **Oracle Always Free** - 24/7, full control, truly free forever
 - **AWS Free Tier** - 12 months free, professional hosting
 - **Google Cloud Free** - $300 credit, enterprise-grade
 
-### Migration Benefits:
+### **Migration Benefits**
 
 - ✅ No policy violations
 - ✅ Better performance
@@ -284,29 +334,49 @@ Instead of violating Aternos ToS, consider these **bot-friendly** platforms:
 
 ## 📦 **Deployment**
 
-### Render.com (Current)
+### **Render.com (Recommended)**
+
+Your app is currently deployed at: **https://bot-aternos-6ltq.onrender.com/**
 
 ```yaml
 # render.yaml
 services:
   - type: web
-    name: aternos-bot
+    name: aternos-bot-system
     env: node
     buildCommand: npm install --production
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: BETTER_STACK_ENABLED
+        value: true
+      - key: BETTER_STACK_HEARTBEAT
+        value: https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY
 ```
 
-### Docker
+### **Environment Variables for Production**
+
+```env
+NODE_ENV=production
+PORT=3000
+BETTER_STACK_ENABLED=true
+BETTER_STACK_HEARTBEAT=https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY
+SERVER_HOST=your-server.aternos.me
+SERVER_PORT=19132
+MC_VERSION=1.21.90
+BOT_USERNAME=YourBotName
+DEFAULT_OFFLINE_MODE=true
+```
+
+### **Docker Deployment**
 
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++ gcc
+# Install dependencies
+RUN apk add --no-cache python3 make g++ gcc curl
 
 # Copy package files
 COPY package*.json ./
@@ -314,6 +384,9 @@ RUN npm install --production
 
 # Copy source code
 COPY . .
+
+# Create directories
+RUN mkdir -p logs/bots data
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -324,165 +397,104 @@ USER nodejs
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 CMD ["npm", "start"]
 ```
 
-### Kubernetes
+### **Production Checklist**
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: aternos-bot
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: aternos-bot
-  template:
-    metadata:
-      labels:
-        app: aternos-bot
-    spec:
-      containers:
-        - name: bot
-          image: aternos-bot:latest
-          ports:
-            - containerPort: 3000
-          env:
-            - name: NODE_ENV
-              value: "production"
-```
+- ✅ Environment variables configured
+- ✅ Better Stack monitoring setup
+- ✅ Health check endpoint working
+- ✅ Logs directory created
+- ✅ Data persistence configured
+- ✅ Security headers enabled
+- ✅ Error handling implemented
 
 ---
 
 ## 🔧 **Development**
 
-### Project Structure
-
-```
-Bot/
-├── index.js              # Main bot logic (782 lines)
-├── config.js             # Server configuration
-├── monitor.html          # Dashboard UI
-├── package.json          # Dependencies & scripts
-├── fix-security.js       # Security fix tool
-├── .npmrc               # npm configuration
-├── Dockerfile           # Docker container
-├── render.yaml          # Render.com deployment
-├── SECURITY-FIX.md      # Security documentation
-└── README.md            # This file
-```
-
-### Available Scripts
-
-```bash
-npm start              # Start bot
-npm run dev           # Development mode
-npm run crack         # Crack server preset
-npm run premium       # Premium server preset
-npm run fix-security  # Fix security issues
-npm run clean-install # Clean npm install
-```
-
-### Contributing
+### **Contributing**
 
 1. Fork the repository
-2. Create feature branch
-3. Test thoroughly
-4. Submit pull request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+### **Development Setup**
+
+```bash
+# Clone and setup
+git clone https://github.com/SmallFCraft/bot-aternos.git
+cd bot-aternos
+npm install
+
+# Development mode
+npm run dev
+
+# Run tests
+npm test
+
+# Check security
+npm audit
+```
+
+### **Code Style**
+
+- Use ES6+ features
+- Follow MVC architecture
+- Add comprehensive error handling
+- Include JSDoc comments
+- Write unit tests for new features
 
 ---
 
 ## ⚠️ **Warnings & Disclaimers**
 
-### Aternos Policy Violations:
+### **Aternos Policy Violations**
 
 - **§5.2.c.1:** Using fake players (bots) ❌
 - **§5.2.c.2:** Automatically reconnecting after disconnect ❌
 - **§5.2.c.3:** Faking player activity ❌
 
-### Consequences:
+### **Potential Consequences**
 
 - Account suspension
 - Server deletion
 - Permanent ban
 - Loss of all data
 
-### Recommendation:
+### **Recommendation**
 
 **Migrate to bot-friendly hosting** to avoid these risks entirely.
 
 ---
 
-## 📞 **Support**
+## 📞 **Support & Resources**
 
-- 🐛 **Issues:** Create GitHub issue
-- 💬 **Questions:** Check troubleshooting section
-- 🔄 **Updates:** Watch repository for improvements
+### **Getting Help**
 
----
+- 🐛 **Issues:** [Create GitHub Issue](https://github.com/SmallFCraft/bot-aternos/issues)
+- 💬 **Discussions:** Check troubleshooting section first
+- � **Documentation:** Read this README thoroughly
+- �🔄 **Updates:** Watch repository for improvements
 
-## 🆕 **Possible Extensions với bedrock-protocol**
+### **Useful Links**
 
-### Chat Bot Features
+- **bedrock-protocol:** https://www.npmjs.com/package/bedrock-protocol
+- **Better Stack:** https://betterstack.com
+- **Render.com:** https://render.com
+- **Oracle Always Free:** https://www.oracle.com/cloud/free/
 
-```javascript
-// Auto-responder
-client.on("text", packet => {
-  if (packet.message.includes("!help")) {
-    client.queue("text", {
-      type: "chat",
-      message: "Available commands: !time, !players, !status",
-    });
-  }
-});
+### **Production Deployment**
 
-// Command system
-const commands = {
-  "!time": () => new Date().toLocaleString(),
-  "!players": () => `Players online: ${server.players.length}`,
-  "!status": () => "Bot is running!",
-};
-```
-
-### Advanced Monitoring
-
-```javascript
-// Player tracking
-client.on("add_player", packet => {
-  console.log(`Player joined: ${packet.username}`);
-});
-
-// Block changes
-client.on("update_block", packet => {
-  console.log(`Block changed at ${packet.coordinates}`);
-});
-
-// Inventory monitoring
-client.on("inventory_transaction", packet => {
-  // Track item movements
-});
-```
-
-### Server Management
-
-```javascript
-// Auto-restart on crash
-client.on("disconnect", reason => {
-  console.log(`Disconnected: ${reason}`);
-  setTimeout(() => reconnect(), 5000);
-});
-
-// Performance monitoring
-setInterval(() => {
-  const stats = client.getStats();
-  console.log(`Ping: ${stats.ping}ms, Packets: ${stats.packets}`);
-}, 30000);
-```
+- **Live App:** https://bot-aternos-6ltq.onrender.com/
+- **Status Page:** https://aternos.betteruptime.com/
+- **Health Check:** https://bot-aternos-6ltq.onrender.com/api/health
 
 ---
 
@@ -494,14 +506,15 @@ MIT License - This project is for educational purposes only. Use at your own ris
 
 ---
 
-## 🔗 **Links & Resources**
+## 🎉 **Acknowledgments**
 
-- **bedrock-protocol:** <https://www.npmjs.com/package/bedrock-protocol>
-- **PrismarineJS:** <https://github.com/PrismarineJS>
-- **Minecraft Protocol Docs:** <https://prismarinejs.github.io/minecraft-data/>
-- **Better Stack Monitoring:** <https://betterstack.com>
-- **Oracle Always Free:** <https://www.oracle.com/cloud/free/>
+- **PrismarineJS** - For the excellent bedrock-protocol library
+- **Better Stack** - For professional monitoring solutions
+- **Render.com** - For reliable hosting platform
+- **Community** - For feedback and contributions
 
 ---
 
-## ⭐ Star this repo if it helped you! ⭐
+## ⭐ **Star this repo if it helped you!** ⭐
+
+**🚀 Ready to manage multiple bots like a pro? Get started now!**

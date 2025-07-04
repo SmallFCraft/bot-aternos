@@ -168,6 +168,43 @@ class Bot {
       }
     });
 
+    // Capture entity ID from start_game packet
+    this.client.on("start_game", packet => {
+      if (packet.runtime_entity_id) {
+        this.entityId = packet.runtime_entity_id;
+        this.log(
+          `🆔 Entity ID captured from start_game: ${this.entityId}`,
+          "info"
+        );
+      }
+    });
+
+    // Alternative: capture from add_player packet
+    this.client.on("add_player", packet => {
+      if (packet.username === this.config.username && packet.runtime_id) {
+        this.entityId = packet.runtime_id;
+        this.log(
+          `🆔 Entity ID captured from add_player: ${this.entityId}`,
+          "info"
+        );
+      }
+    });
+
+    // Fallback: try to get entity ID from client properties
+    this.client.on("packet", packet => {
+      if (
+        !this.entityId &&
+        packet.name === "move_player" &&
+        packet.params?.runtime_id
+      ) {
+        this.entityId = packet.params.runtime_id;
+        this.log(
+          `🆔 Entity ID captured from move_player: ${this.entityId}`,
+          "info"
+        );
+      }
+    });
+
     // Packet handling
     this.client.on("text", packet => {
       this.status.packetsReceived++;
@@ -340,24 +377,46 @@ class Bot {
   moveToPosition(x, y, z) {
     if (!this.client || !this.isConnected()) return;
 
+    // Ensure entityId is valid before sending movement packet
+    if (!this.entityId || this.entityId === undefined) {
+      this.log(`⚠️ Cannot move: Entity ID not available yet`, "warn");
+      return;
+    }
+
     try {
+      // Ensure entityId is properly converted to BigInt
+      const entityId =
+        typeof this.entityId === "bigint"
+          ? this.entityId
+          : BigInt(this.entityId);
+
       this.client.write("move_player", {
-        runtime_id: this.entityId || 1,
-        position: { x, y, z },
-        pitch: 0,
-        yaw: 0,
-        head_yaw: 0,
-        mode: 0,
+        runtime_id: entityId,
+        position: {
+          x: Number(parseFloat(x)),
+          y: Number(parseFloat(y)),
+          z: Number(parseFloat(z)),
+        },
+        pitch: Number(0),
+        yaw: Number(0),
+        head_yaw: Number(0),
+        mode: Number(0),
         on_ground: true,
-        ridden_runtime_id: 0,
-        teleport_cause: 0,
-        teleport_item: 0,
+        ridden_runtime_id: BigInt(0),
+        teleport_cause: Number(0),
+        teleport_item: Number(0),
       });
 
       this.status.currentPosition = { x, y, z };
       this.status.packetsSent++;
     } catch (error) {
       this.log(`❌ Movement packet failed: ${error.message}`, "error");
+      this.log(
+        `🔍 Debug info - EntityID: ${this.entityId} (type: ${typeof this
+          .entityId})`,
+        "debug"
+      );
+      this.log(`🔍 Debug info - Position: x=${x}, y=${y}, z=${z}`, "debug");
     }
   }
 
