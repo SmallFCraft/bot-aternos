@@ -167,7 +167,7 @@ body {
 /* Bot Grid */
 .bot-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
@@ -178,6 +178,8 @@ body {
     padding: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     position: relative;
+    min-width: 350px;
+    box-sizing: border-box;
 }
 
 .bot-card.connected {
@@ -193,13 +195,18 @@ body {
 .bot-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
+    gap: 10px;
 }
 
 .bot-name {
     font-size: 1.2em;
     font-weight: bold;
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .bot-status {
@@ -207,6 +214,8 @@ body {
     align-items: center;
     gap: 8px;
     font-size: 0.9em;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .status-dot {
@@ -239,17 +248,23 @@ body {
 .bot-info-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 8px;
     font-size: 0.9em;
+    min-height: 20px;
 }
 
 .bot-info-label {
     color: #cccccc;
+    flex-shrink: 0;
+    margin-right: 10px;
 }
 
 .bot-info-value {
     color: #ffffff;
     font-weight: 500;
+    text-align: right;
+    word-break: break-word;
 }
 
 .bot-controls {
@@ -436,6 +451,40 @@ body {
 
 .bot-card.disconnected:hover {
     box-shadow: 0 8px 30px rgba(255, 68, 68, 0.4);
+}
+
+/* Responsive Design for Bot Cards */
+@media (max-width: 768px) {
+    .bot-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .bot-card {
+        min-width: unset;
+        padding: 15px;
+    }
+
+    .bot-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .bot-info-label {
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+
+    .bot-info-value {
+        text-align: left;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .bot-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
 }
 
 /* Enhanced Button Effects */

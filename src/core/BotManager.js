@@ -387,6 +387,10 @@ class BotManager {
     return this.betterStack.getStatus();
   }
 
+  getBetterStackConfig() {
+    return this.betterStack.getConfig();
+  }
+
   disableBetterStack() {
     this.betterStack.disable();
   }

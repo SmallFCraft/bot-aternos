@@ -262,9 +262,14 @@ class BetterStackMonitor {
       heartbeatUrl: this.config.heartbeatUrl ? "***configured***" : null,
       interval: this.config.interval,
       lastHeartbeat: this.config.lastHeartbeat,
-      totalHeartbeats: this.config.totalHeartbeats || 0,
-      failedHeartbeats: this.config.failedHeartbeats || 0,
-      successRate: `${successRate}%`,
+      statistics: {
+        totalRequests: this.config.totalHeartbeats || 0,
+        successfulRequests:
+          (this.config.totalHeartbeats || 0) -
+          (this.config.failedHeartbeats || 0),
+        failedRequests: this.config.failedHeartbeats || 0,
+        successRate: successRate,
+      },
       nextHeartbeat:
         this.isEnabled && this.config.lastHeartbeat
           ? new Date(
@@ -272,6 +277,15 @@ class BetterStackMonitor {
                 this.config.interval
             ).toISOString()
           : null,
+    };
+  }
+
+  // Get Better Stack configuration (for setup modal)
+  getConfig() {
+    return {
+      heartbeatUrl: this.config.heartbeatUrl || "",
+      interval: this.config.interval || 60000,
+      enabled: this.config.enabled || false,
     };
   }
 

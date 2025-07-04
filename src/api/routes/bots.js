@@ -1,10 +1,10 @@
 // src/api/routes/bots.js - Bot Management API Routes
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-module.exports = (botManager) => {
+module.exports = botManager => {
   // Get all bots
-  router.get('/', (req, res) => {
+  router.get("/", (req, res) => {
     try {
       const bots = botManager.getAllBots();
       res.json({
@@ -12,49 +12,62 @@ module.exports = (botManager) => {
         bots: bots,
         total: bots.length,
         running: bots.filter(bot => bot.isConnected).length,
-        stopped: bots.filter(bot => !bot.isConnected).length
+        stopped: bots.filter(bot => !bot.isConnected).length,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Get specific bot
-  router.get('/:id', (req, res) => {
+  router.get("/:id", (req, res) => {
     try {
       const bot = botManager.getBot(req.params.id);
       if (!bot) {
         return res.status(404).json({
           success: false,
-          error: 'Bot not found'
+          error: "Bot not found",
         });
       }
 
       res.json({
         success: true,
-        bot: bot
+        bot: bot,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Create new bot
-  router.post('/', async (req, res) => {
+  router.post("/", async (req, res) => {
     try {
-      const { name, host, port, username, version, isOfflineMode, skipAuthentication, antiAfkEnabled, antiAfkInterval, movementRange, maxReconnectAttempts, autoStart } = req.body;
+      const {
+        name,
+        host,
+        port,
+        username,
+        version,
+        isOfflineMode,
+        skipAuthentication,
+        antiAfkEnabled,
+        antiAfkInterval,
+        movementRange,
+        maxReconnectAttempts,
+        autoStart,
+      } = req.body;
 
       // Validate required fields
       if (!host || !port || !username) {
         return res.status(400).json({
           success: false,
-          error: 'Missing required fields: host, port, username'
+          error: "Missing required fields: host, port, username",
         });
       }
 
@@ -63,14 +76,14 @@ module.exports = (botManager) => {
         host,
         port: parseInt(port),
         username,
-        version: version || '1.21.90',
+        version: version || "1.21.90",
         isOfflineMode: isOfflineMode || false,
         skipAuthentication: skipAuthentication || false,
         antiAfkEnabled: antiAfkEnabled !== false, // Default true
         antiAfkInterval: parseInt(antiAfkInterval) || 30000,
         movementRange: parseFloat(movementRange) || 2.0,
         maxReconnectAttempts: parseInt(maxReconnectAttempts) || 50,
-        autoStart: autoStart || false
+        autoStart: autoStart || false,
       };
 
       const result = await botManager.createBot(config);
@@ -83,13 +96,13 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Update bot configuration
-  router.put('/:id', async (req, res) => {
+  router.put("/:id", async (req, res) => {
     try {
       const botId = req.params.id;
       const updates = req.body;
@@ -104,13 +117,13 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Delete bot
-  router.delete('/:id', async (req, res) => {
+  router.delete("/:id", async (req, res) => {
     try {
       const result = await botManager.deleteBot(req.params.id);
 
@@ -122,13 +135,13 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Start bot
-  router.post('/:id/start', async (req, res) => {
+  router.post("/:id/start", async (req, res) => {
     try {
       const result = await botManager.startBot(req.params.id);
 
@@ -140,13 +153,13 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Stop bot
-  router.post('/:id/stop', async (req, res) => {
+  router.post("/:id/stop", async (req, res) => {
     try {
       const result = await botManager.stopBot(req.params.id);
 
@@ -158,13 +171,13 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Restart bot
-  router.post('/:id/restart', async (req, res) => {
+  router.post("/:id/restart", async (req, res) => {
     try {
       const result = await botManager.restartBot(req.params.id);
 
@@ -176,19 +189,19 @@ module.exports = (botManager) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Toggle Anti-AFK for specific bot
-  router.post('/:id/anti-afk/toggle', async (req, res) => {
+  router.post("/:id/anti-afk/toggle", async (req, res) => {
     try {
       const bot = botManager.getBot(req.params.id);
       if (!bot) {
         return res.status(404).json({
           success: false,
-          error: 'Bot not found'
+          error: "Bot not found",
         });
       }
 
@@ -196,49 +209,63 @@ module.exports = (botManager) => {
       if (!botInstance) {
         return res.status(404).json({
           success: false,
-          error: 'Bot instance not found'
+          error: "Bot instance not found",
         });
       }
 
-      if (!botInstance.status.hasSpawned) {
-        return res.status(400).json({
-          success: false,
-          error: 'Bot not spawned yet'
-        });
-      }
+      // Check if bot is connected and spawned for starting Anti-AFK
+      if (!botInstance.status.antiAfk.active) {
+        // Starting Anti-AFK
+        if (!botInstance.isConnected()) {
+          return res.status(400).json({
+            success: false,
+            error: "Bot not connected",
+          });
+        }
 
-      if (botInstance.status.antiAfk.active) {
-        botInstance.stopAntiAfk();
-        res.json({
-          success: true,
-          message: 'Anti-AFK stopped',
-          active: false
-        });
-      } else {
+        if (!botInstance.status.hasSpawned) {
+          return res.status(400).json({
+            success: false,
+            error: "Bot not spawned yet",
+          });
+        }
+
         botInstance.startAntiAfk();
         res.json({
           success: true,
-          message: 'Anti-AFK started',
-          active: true
+          message: "Anti-AFK started",
+          active: true,
+        });
+      } else {
+        // Stopping Anti-AFK (can always stop)
+        botInstance.stopAntiAfk();
+        res.json({
+          success: true,
+          message: "Anti-AFK stopped",
+          active: false,
         });
       }
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Manual movement for specific bot
-  router.post('/:id/move', async (req, res) => {
+  router.post("/:id/move", async (req, res) => {
     try {
       const { x, y, z } = req.body;
 
-      if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') {
+      if (
+        typeof x !== "number" ||
+        typeof y !== "number" ||
+        typeof z !== "number"
+      ) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid coordinates. x, y, z must be numbers'
+          error: "Invalid coordinates. x, y, z must be numbers",
         });
       }
 
@@ -246,41 +273,40 @@ module.exports = (botManager) => {
       if (!botInstance) {
         return res.status(404).json({
           success: false,
-          error: 'Bot not found'
+          error: "Bot not found",
         });
       }
 
       if (!botInstance.status.hasSpawned) {
         return res.status(400).json({
           success: false,
-          error: 'Bot not spawned yet'
+          error: "Bot not spawned yet",
         });
       }
 
       const result = botInstance.manualMove(x, y, z);
       res.json({
         success: true,
-        message: 'Movement command sent',
+        message: "Movement command sent",
         position: result.position,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       });
-
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Get bot logs
-  router.get('/:id/logs', (req, res) => {
+  router.get("/:id/logs", (req, res) => {
     try {
       const botInstance = botManager.bots.get(req.params.id);
       if (!botInstance) {
         return res.status(404).json({
           success: false,
-          error: 'Bot not found'
+          error: "Bot not found",
         });
       }
 
@@ -291,24 +317,24 @@ module.exports = (botManager) => {
         success: true,
         logs: logs,
         total: logs.length,
-        botId: req.params.id
+        botId: req.params.id,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });
 
   // Clear bot logs
-  router.delete('/:id/logs', (req, res) => {
+  router.delete("/:id/logs", (req, res) => {
     try {
       const botInstance = botManager.bots.get(req.params.id);
       if (!botInstance) {
         return res.status(404).json({
           success: false,
-          error: 'Bot not found'
+          error: "Bot not found",
         });
       }
 
@@ -317,18 +343,18 @@ module.exports = (botManager) => {
       if (success) {
         res.json({
           success: true,
-          message: 'Bot logs cleared'
+          message: "Bot logs cleared",
         });
       } else {
         res.status(500).json({
           success: false,
-          error: 'Failed to clear logs'
+          error: "Failed to clear logs",
         });
       }
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   });

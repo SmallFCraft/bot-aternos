@@ -390,22 +390,40 @@ class Bot {
           ? this.entityId
           : BigInt(this.entityId);
 
-      this.client.write("move_player", {
-        runtime_id: entityId,
-        position: {
-          x: Number(parseFloat(x)),
-          y: Number(parseFloat(y)),
-          z: Number(parseFloat(z)),
-        },
-        pitch: Number(0),
-        yaw: Number(0),
-        head_yaw: Number(0),
-        mode: Number(0),
-        on_ground: true,
-        ridden_runtime_id: BigInt(0),
-        teleport_cause: Number(0),
-        teleport_item: Number(0),
-      });
+      // Try alternative approach - use player_move instead of move_player
+      try {
+        this.client.write("player_move", {
+          position: {
+            x: parseFloat(x),
+            y: parseFloat(y),
+            z: parseFloat(z),
+          },
+        });
+        this.log(`🔍 Sent player_move packet successfully`, "debug");
+      } catch (altError) {
+        this.log(
+          `⚠️ player_move failed, trying move_player: ${altError.message}`,
+          "warn"
+        );
+
+        // Fallback to original method with string conversion
+        const packet = {
+          runtime_id: entityId.toString(), // Convert BigInt to string
+          position: {
+            x: parseFloat(x),
+            y: parseFloat(y),
+            z: parseFloat(z),
+          },
+          pitch: 0,
+          yaw: 0,
+          head_yaw: 0,
+          mode: 0,
+          on_ground: true,
+        };
+
+        this.log(`🔍 Fallback packet: ${JSON.stringify(packet)}`, "debug");
+        this.client.write("move_player", packet);
+      }
 
       this.status.currentPosition = { x, y, z };
       this.status.packetsSent++;
@@ -422,9 +440,13 @@ class Bot {
 
   // Get bot status
   getStatus() {
-    const uptime = Math.floor(
-      (Date.now() - new Date(this.status.startTime).getTime()) / 1000
-    );
+    // Calculate uptime only when connected
+    let uptime = 0;
+    if (this.isConnected() && this.status.lastConnected) {
+      uptime = Math.floor(
+        (Date.now() - new Date(this.status.lastConnected).getTime()) / 1000
+      );
+    }
 
     return {
       ...this.status,

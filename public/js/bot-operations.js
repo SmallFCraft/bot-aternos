@@ -135,14 +135,14 @@ async function toggleAntiAfk(botId) {
   try {
     addLocalLog(`🚶 Toggling Anti-AFK for bot ${botId.slice(0, 8)}...`);
 
-    const response = await fetch(`/api/bots/${botId}/toggle-antiafk`, {
+    const response = await fetch(`/api/bots/${botId}/anti-afk/toggle`, {
       method: "POST",
     });
 
     const data = await response.json();
 
     if (data.success) {
-      const status = data.enabled ? "enabled" : "disabled";
+      const status = data.active ? "enabled" : "disabled";
       addLocalLog(`✅ Anti-AFK ${status} for bot`);
       loadBots(); // Refresh bot list
     } else {
