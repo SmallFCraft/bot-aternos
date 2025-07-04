@@ -1,20 +1,9 @@
-<<<<<<< HEAD
-// config.js - Cấu hình Bot Aternos Bedrock (Simplified)
 module.exports = {
   // ===== SERVER CONFIGURATION =====
   server: {
     host: process.env.SERVER_HOST || "rinny.aternos.me",
     port: parseInt(process.env.SERVER_PORT) || 38707,
     version: process.env.MC_VERSION || "1.21.90", // Bedrock version
-=======
-// config.js - Cấu hình Bot Aternos Bedrock
-module.exports = {
-  // ===== SERVER CONFIGURATION =====
-  server: {
-    host: process.env.SERVER_HOST || "Meo_MC403-IFBX.aternos.me",
-    port: parseInt(process.env.SERVER_PORT) || 33122,
-    version: process.env.MC_VERSION || "1.21.70", // Bedrock version
->>>>>>> 74fef4712ff6779b7e1e1bced39e390f1bf50951
   },
 
   // ===== BOT CONFIGURATION =====
@@ -54,38 +43,10 @@ module.exports = {
     enablePacketLogs: false, // Set true để debug
   },
 
-<<<<<<< HEAD
-  // ===== SIMPLIFIED ANTI-AFK =====
   antiAfk: {
     enabled: process.env.ANTI_AFK_ENABLED !== "false", // true by default
     interval: parseInt(process.env.ANTI_AFK_INTERVAL) || 30000, // 30 seconds
     movementRange: parseFloat(process.env.MOVEMENT_RANGE) || 2.0, // blocks
-=======
-  // ===== MOVEMENT & POSITION TRACKING =====
-  movement: {
-    // Anti-AFK movement system
-    antiAfk: {
-      enabled: process.env.ANTI_AFK_ENABLED !== "false", // true by default
-      interval: parseInt(process.env.ANTI_AFK_INTERVAL) || 30000, // 30 seconds
-      movementRange: parseFloat(process.env.MOVEMENT_RANGE) || 2.0, // blocks
-      randomMovement: process.env.RANDOM_MOVEMENT !== "false", // true by default
-    },
-
-    // Position tracking
-    tracking: {
-      enabled: process.env.POSITION_TRACKING_ENABLED !== "false", // true by default
-      logMovement: process.env.LOG_MOVEMENT === "true",
-      trackOtherPlayers: process.env.TRACK_OTHER_PLAYERS !== "false", // true by default
-      maxPlayerHistory: parseInt(process.env.MAX_PLAYER_HISTORY) || 100,
-    },
-
-    // Movement statistics
-    statistics: {
-      enabled: process.env.MOVEMENT_STATS_ENABLED !== "false", // true by default
-      trackDistance: process.env.TRACK_DISTANCE !== "false", // true by default
-      resetStatsOnRestart: process.env.RESET_STATS_ON_RESTART === "true",
-    },
->>>>>>> 74fef4712ff6779b7e1e1bced39e390f1bf50951
   },
 
   // ===== SERVER TYPE PRESETS =====

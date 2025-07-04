@@ -7,28 +7,10 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "node index.js",
-<<<<<<< HEAD
     "crack": "node -e \"const config = require('./config'); config.useCrackServerPreset(); console.log('✅ Crack mode enabled');\"",
     "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\"",
     "fix-security": "node fix-security.js",
     "clean-install": "npm cache clean --force && npm install"
-=======
-    "build": "echo 'No build step required'",
-    "postinstall": "echo 'Installation complete'",
-    "setup-betterstack": "node setup-betterstack.js",
-    "crack": "node -e \"const config = require('./config'); config.useCrackServerPreset(); console.log('✅ Crack mode enabled');\"",
-    "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\"",
-    "fix-security": "node fix-security.js",
-    "clean-install": "npm cache clean --force && npm install",
-    "docker:build": "docker build -t aternos-bedrock-bot:latest .",
-    "docker:run": "docker run -d --name aternos-bot -p 3000:3000 --restart unless-stopped aternos-bedrock-bot:latest",
-    "docker:stop": "docker stop aternos-bot",
-    "docker:logs": "docker logs -f aternos-bot",
-    "docker:shell": "docker exec -it aternos-bot sh",
-    "compose:up": "docker-compose up -d",
-    "compose:down": "docker-compose down",
-    "compose:logs": "docker-compose logs -f"
->>>>>>> 74fef4712ff6779b7e1e1bced39e390f1bf50951
   },
   "dependencies": {
     "axios": "^1.6.0",
