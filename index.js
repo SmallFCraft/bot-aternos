@@ -1,151 +1,155 @@
-// index-new.js - Simplified Main Entry Point
-const cron = require("node-cron");
-const axios = require("axios");
+// index-new.js - Multi-Bot System Main Entry Point
+require("dotenv").config();
 
-// Import modular components
-const AternosBot = require("./bot");
-const BotAPI = require("./api");
-const FileLogger = require("./logger");
-const config = require("./config");
+const path = require("path");
+const BotManager = require("./src/core/BotManager");
+const APIServer = require("./src/api/server");
+const config = require("./src/config/default");
 
-// Initialize logger
-const logger = new FileLogger("./logs/bot.log");
+// Configuration
+const PORT = process.env.PORT || 3000;
 
-// Real-time log broadcasting for dashboard
-let logBroadcasters = new Set();
-global.logBroadcasters = logBroadcasters; // Make available globally for API
+class MultiBotSystem {
+  constructor() {
+    this.botManager = null;
+    this.apiServer = null;
+    this.isShuttingDown = false;
+  }
 
-const broadcastLog = (message, type = "info", source = "bot") => {
-  // Log to file
-  logger.log(message, type, source);
-
-  // Create log entry for broadcasting
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    message,
-    type,
-    source,
-  };
-
-  // Broadcast to all connected dashboards
-  logBroadcasters.forEach(broadcaster => {
+  async initialize() {
     try {
-      broadcaster(logEntry);
+      console.log("🚀 Initializing Multi-Bot Aternos System...");
+      console.log("📅 Start time:", new Date().toLocaleString());
+
+      // Validate and display configuration
+      const validation = config.validate();
+      if (!validation.isValid) {
+        console.error("❌ Configuration validation failed:");
+        validation.errors.forEach(error => console.error(`   • ${error}`));
+        process.exit(1);
+      }
+
+      config.displaySummary();
+
+      // Display warnings
+      this.displayWarnings();
+
+      // Initialize BotManager
+      console.log("🤖 Initializing Bot Manager...");
+      this.botManager = new BotManager();
+
+      // Initialize API Server
+      console.log("🌐 Initializing API Server...");
+      this.apiServer = new APIServer(this.botManager, PORT);
+
+      // Start API Server
+      await this.apiServer.start();
+
+      // Setup graceful shutdown
+      this.setupGracefulShutdown();
+
+      console.log("✅ Multi-Bot System initialized successfully!");
+      console.log(`📊 Dashboard: http://localhost:${PORT}`);
+      console.log(`🔗 API: http://localhost:${PORT}/api`);
+      console.log("");
+      console.log("🎯 Ready to manage multiple bots!");
+
+      // Display initial statistics
+      this.displayStats();
     } catch (error) {
-      logBroadcasters.delete(broadcaster);
+      console.error("❌ Failed to initialize Multi-Bot System:", error);
+      process.exit(1);
     }
-  });
-};
-
-const BETTER_STACK = {
-  heartbeatUrl: config.monitoring.betterStack.heartbeatUrl,
-  enabled: config.monitoring.betterStack.enabled,
-  interval: config.monitoring.betterStack.heartbeatInterval,
-};
-
-let betterStackInterval = null;
-const sendBetterStackHeartbeat = async () => {
-  if (!BETTER_STACK.enabled || !BETTER_STACK.heartbeatUrl) return;
-
-  try {
-    await axios.get(BETTER_STACK.heartbeatUrl, { timeout: 5000 });
-    // Don't spam log for regular heartbeats
-  } catch (error) {
-    broadcastLog(`Better Stack heartbeat failed: ${error.message}`, "warn");
-  }
-};
-
-const bot = new AternosBot(logger, broadcastLog);
-const api = new BotAPI(bot, logger, broadcastLog);
-if (BETTER_STACK.enabled) {
-  betterStackInterval = setInterval(
-    sendBetterStackHeartbeat,
-    BETTER_STACK.interval
-  );
-  broadcastLog(
-    `Better Stack heartbeat enabled (${
-      BETTER_STACK.interval / 1000
-    }s interval)`,
-    "info"
-  );
-}
-
-// Scheduled restart (if enabled)
-if (config.scheduling.autoRestart) {
-  cron.schedule(config.scheduling.restartInterval, () => {
-    broadcastLog("Scheduled restart", "info");
-    bot.restart();
-  });
-  broadcastLog(
-    `Scheduled restart enabled: ${config.scheduling.restartInterval}`,
-    "info"
-  );
-}
-
-// Cleanup function
-const cleanup = () => {
-  broadcastLog("Shutting down bot...", "warn");
-
-  if (betterStackInterval) {
-    clearInterval(betterStackInterval);
   }
 
-  bot.cleanup();
+  displayWarnings() {
+    console.log("");
+    console.log("⚠️  ==================== WARNING ====================");
+    console.log("🚨 This bot may violate Aternos Terms of Service");
+    console.log("📋 Aternos prohibits automated keep-alive systems");
+    console.log("⚖️  Risk Level: MEDIUM");
+    console.log("");
+    console.log("💡 RECOMMENDED ALTERNATIVES:");
+    console.log("   • Oracle Cloud Always Free (24/7 support)");
+    console.log("   • Google Cloud Platform Free Tier");
+    console.log("   • AWS Free Tier");
+    console.log("   • Self-hosted VPS solutions");
+    console.log("   • Dedicated Minecraft hosting services");
+    console.log("");
+    console.log("🔗 Consider migrating to bot-friendly hosting");
+    console.log("====================================================");
+    console.log("");
+  }
 
-  setTimeout(() => {
-    process.exit(0);
-  }, 2000);
-};
+  displayStats() {
+    const stats = this.botManager.getStats();
+    console.log("📊 SYSTEM STATISTICS:");
+    console.log(`   • Total Bots: ${stats.totalBots}`);
+    console.log(`   • Running Bots: ${stats.runningBots}`);
+    console.log(`   • Stopped Bots: ${stats.stoppedBots}`);
+    console.log(
+      `   • Memory Usage: ${Math.round(
+        stats.memoryUsage.heapUsed / 1024 / 1024
+      )}MB`
+    );
+    console.log(`   • Node.js Version: ${process.version}`);
+    console.log(`   • Platform: ${process.platform}`);
+    console.log("");
+  }
 
-// Process event handlers
-process.on("SIGINT", cleanup);
-process.on("SIGTERM", cleanup);
+  setupGracefulShutdown() {
+    const shutdown = async signal => {
+      if (this.isShuttingDown) return;
+      this.isShuttingDown = true;
 
-process.on("uncaughtException", error => {
-  broadcastLog(`Uncaught exception: ${error.message}`, "error");
-  console.log(error.stack);
-});
+      console.log(`\n🛑 Received ${signal}. Gracefully shutting down...`);
 
-process.on("unhandledRejection", (reason, promise) => {
-  broadcastLog(`Unhandled rejection: ${reason}`, "error");
-});
+      try {
+        // Stop all bots
+        if (this.botManager) {
+          console.log("🤖 Shutting down all bots...");
+          await this.botManager.shutdown();
+        }
 
-// Start application
-broadcastLog(
-  "🚨 WARNING: This bot may violate Aternos Terms of Service",
-  "warn"
-);
-broadcastLog("🔗 Consider migrating to bot-friendly hosting", "warn");
-broadcastLog("Starting Aternos Bedrock Keep-Alive Bot (Simplified)...", "info");
+        // Stop API server
+        if (this.apiServer) {
+          console.log("🌐 Stopping API server...");
+          await this.apiServer.stop();
+        }
 
-// Display configuration
-broadcastLog(
-  `Server: ${bot.serverConfig.host}:${bot.serverConfig.port}`,
-  "info"
-);
-broadcastLog(`Version: ${bot.serverConfig.version}`, "info");
-broadcastLog(`Username: ${bot.serverConfig.username}`, "info");
-broadcastLog(
-  `Anti-AFK: ${config.antiAfk.enabled ? "Enabled" : "Disabled"}`,
-  "info"
-);
-broadcastLog(
-  `Better Stack: ${BETTER_STACK.enabled ? "Enabled" : "Disabled"}`,
-  "info"
-);
-broadcastLog(`Start time: ${new Date().toLocaleString()}`, "info");
+        console.log("✅ Graceful shutdown completed");
+        process.exit(0);
+      } catch (error) {
+        console.error("❌ Error during shutdown:", error);
+        process.exit(1);
+      }
+    };
 
-// Start components
-try {
-  // Start web server
-  api.start();
+    // Handle different shutdown signals
+    process.on("SIGINT", () => shutdown("SIGINT"));
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGQUIT", () => shutdown("SIGQUIT"));
 
-  // Start bot connection
-  bot.connect();
+    // Handle uncaught exceptions
+    process.on("uncaughtException", error => {
+      console.error("💥 Uncaught Exception:", error);
+      shutdown("uncaughtException");
+    });
 
-  broadcastLog("✅ Application started successfully", "info");
-} catch (error) {
-  broadcastLog(`❌ Failed to start application: ${error.message}`, "error");
-  console.error("Startup error:", error);
-  process.exit(1);
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
+      shutdown("unhandledRejection");
+    });
+  }
 }
+
+// Check if this file is being run directly
+if (require.main === module) {
+  const system = new MultiBotSystem();
+  system.initialize().catch(error => {
+    console.error("💥 Fatal error during initialization:", error);
+    process.exit(1);
+  });
+}
+
+module.exports = MultiBotSystem;

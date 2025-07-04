@@ -1,0 +1,32 @@
+# Ignore node_modules to prevent performance issues
+node_modules/
+node_modules/**
+
+# Ignore other large directories that might cause lag
+.git/
+.git/**
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Ignore log files
+*.log
+logs/
+logs/**
+
+# Ignore temporary files
+.tmp/
+temp/
+*.tmp
+*.temp
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

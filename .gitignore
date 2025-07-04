@@ -12,7 +12,8 @@ yarn-error.log*
 .env.production.local
 
 # Logs
-logs
+logs/*.log
+logs/bots/*.log
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -95,8 +96,10 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Better Stack config (contains sensitive data)
-betterstack-config.json
+# Bot data and config files (may contain sensitive data)
+data/bots.json
+data/betterstack-config.json
+backup-old-system/
 
 # Render specific
 .render/

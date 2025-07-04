@@ -1,13 +1,23 @@
-# 🤖 Aternos Bedrock Keep-Alive Bot
+# 🤖 Multi-Bot Aternos Keep-Alive System
+
+**Advanced Multi-Bot Management System for Aternos Bedrock Servers**
+
+> ⚠️ **MIGRATION NOTICE**: This project has been upgraded to support multiple bots!
+>
+> - **New Users**: Use `npm start` to run the new multi-bot system
+> - **Existing Users**: See [MIGRATION-GUIDE.md](MIGRATION-GUIDE.md) for upgrade instructions
+> - **Legacy System**: Use `npm run old` to run the old single-bot system
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![bedrock-protocol](https://img.shields.io/badge/bedrock--protocol-3.46.0-blue.svg)](https://www.npmjs.com/package/bedrock-protocol)
-[![Security](https://img.shields.io/badge/Security-Fixed-brightgreen.svg)](#security-fixes)
+[![Multi-Bot](https://img.shields.io/badge/Multi--Bot-Supported-brightgreen.svg)](#features)
+[![Better Stack](https://img.shields.io/badge/Better%20Stack-Integrated-blue.svg)](#better-stack-monitoring)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
 **Advanced Minecraft Bedrock Edition bot với dashboard web, monitoring, và nhiều tính năng mở rộng.**
 
 ## ⚠️ **IMPORTANT DISCLAIMER**
+
 This bot **VIOLATES Aternos Terms of Service** and may result in account suspension or permanent ban. Use at your own risk.
 
 **Recommended:** Migrate to bot-friendly hosting platforms like Oracle Always Free, Minehut, or FreeMcServer.net.
@@ -17,6 +27,7 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 ## � **Key Features**
 
 ### 🎯 **Core Bot Features**
+
 - ✅ **24/7 Keep-Alive** - Duy trì server Aternos hoạt động
 - ✅ **Auto Reconnect** - Tự động kết nối lại khi mất kết nối
 - ✅ **Multi-Version Support** - Hỗ trợ Minecraft Bedrock 1.16 → 1.21.90
@@ -24,6 +35,7 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 - ✅ **Real-time Dashboard** - Web interface với live monitoring
 
 ### 🛠️ **Advanced Features (bedrock-protocol)**
+
 - 🔐 **Authentication & Encryption** - Xbox Live authentication
 - 📦 **Packet Management** - Parse/serialize packets as JavaScript objects
 - 🔄 **Auto Keep-Alive** - Tự động respond keep-alive packets
@@ -33,6 +45,7 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 - 🎮 **Game Events** - Listen game events và player actions
 
 ### 🚶 **Movement & Position Tracking**
+
 - 📍 **Real-time Position Tracking** - Track bot's current position and movement
 - 🚶 **Anti-AFK Movement** - Automatic movement to prevent AFK detection
 - 👥 **Player Tracking** - Monitor nearby players and their positions
@@ -42,29 +55,47 @@ This bot **VIOLATES Aternos Terms of Service** and may result in account suspens
 
 ## 🚀 **Quick Start**
 
+### **Multi-Bot System (Recommended)**
+
+```bash
+# Clone repository
+git clone https://github.com/SmallFCraft/bot-aternos.git
+cd bot-aternos
+
+# Install dependencies
+npm install
+
+# Start multi-bot system
+npm start
+
+# Open dashboard
+# http://localhost:3000
+```
+
+### **Legacy Single-Bot System**
+
+```bash
+# Run old system (if needed)
+npm run old
+```
+
+**🎯 Create your first bot through the web dashboard!**
+
 ### Prerequisites
 
 - Node.js 18+
 - NPM/Yarn
 
-### Installation
+### Migration from Old System
+
+If you're upgrading from the single-bot system:
 
 ```bash
-git clone [your-repo]
-cd Bot
-npm install
-```
+# Backup and migrate
+node migrate.js
 
-### Configuration
-
-Edit `config.js` hoặc sử dụng environment variables:
-
-```bash
-# Server Settings
-SERVER_HOST=Meo_MC403-IFBX.aternos.me
-SERVER_PORT=33122
-BOT_USERNAME=LOADING99_71
-OFFLINE_MODE=true
+# Check migration-config.json for suggested settings
+cat migration-config.json
 
 # Monitoring (Optional)
 BETTER_STACK_HEARTBEAT_URL=https://betterstack.com/api/v1/heartbeat/YOUR_KEY
@@ -179,33 +210,33 @@ POST /setup-betterstack  # Configure monitoring
 
 ```javascript
 // Chat integration
-client.on('text', (packet) => {
-  console.log(`${packet.source_name}: ${packet.message}`)
-})
+client.on("text", packet => {
+  console.log(`${packet.source_name}: ${packet.message}`);
+});
 
 // Send chat message
-client.queue('text', {
-  type: 'chat',
+client.queue("text", {
+  type: "chat",
   needs_translation: false,
   source_name: client.username,
-  message: 'Hello from bot!'
-})
+  message: "Hello from bot!",
+});
 
 // Movement packets (experimental)
-client.queue('move_player', {
+client.queue("move_player", {
   runtime_id: client.runtime_id,
   position: { x: 0, y: 64, z: 0 },
-  rotation: { x: 0, y: 0, z: 0 }
-})
+  rotation: { x: 0, y: 0, z: 0 },
+});
 
 // Inventory management
-client.on('inventory_transaction', (packet) => {
+client.on("inventory_transaction", packet => {
   // Handle inventory changes
-})
+});
 
 // Server ping
-const { ping } = require('bedrock-protocol')
-ping({ host: 'server.com', port: 19132 }).then(console.log)
+const { ping } = require("bedrock-protocol");
+ping({ host: "server.com", port: 19132 }).then(console.log);
 ```
 
 ---
@@ -213,11 +244,13 @@ ping({ host: 'server.com', port: 19132 }).then(console.log)
 ## 🐛 **Troubleshooting**
 
 ### Bot Not Working?
+
 1. **Check server status** on Aternos dashboard
 2. **Verify credentials** (username, server address)
-4. **Check live logs** in dashboard for error details
+3. **Check live logs** in dashboard for error details
 
 ### Common Issues:
+
 - **"Movement ignored"** → Use `chat_keepalive` or `command_keepalive`
 - **Connection refused** → Server may be offline
 - **Authentication failed** → Set `OFFLINE_MODE=true` for cracked servers
@@ -229,16 +262,19 @@ ping({ host: 'server.com', port: 19132 }).then(console.log)
 Instead of violating Aternos ToS, consider these **bot-friendly** platforms:
 
 ### 🆓 **Free Options:**
+
 - **Minehut** - Free, allows bots, good uptime
 - **FreeMcServer.net** - Free, bot-friendly
 - **Server.pro** - Free tier, automation allowed
 
 ### 🏆 **Recommended:**
+
 - **Oracle Always Free** - 24/7, full control, truly free forever
 - **AWS Free Tier** - 12 months free, professional hosting
 - **Google Cloud Free** - $300 credit, enterprise-grade
 
 ### Migration Benefits:
+
 - ✅ No policy violations
 - ✅ Better performance
 - ✅ More control
@@ -312,13 +348,13 @@ spec:
         app: aternos-bot
     spec:
       containers:
-      - name: bot
-        image: aternos-bot:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
+        - name: bot
+          image: aternos-bot:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
 ```
 
 ---
@@ -364,17 +400,20 @@ npm run clean-install # Clean npm install
 ## ⚠️ **Warnings & Disclaimers**
 
 ### Aternos Policy Violations:
+
 - **§5.2.c.1:** Using fake players (bots) ❌
 - **§5.2.c.2:** Automatically reconnecting after disconnect ❌
 - **§5.2.c.3:** Faking player activity ❌
 
 ### Consequences:
+
 - Account suspension
 - Server deletion
 - Permanent ban
 - Loss of all data
 
 ### Recommendation:
+
 **Migrate to bot-friendly hosting** to avoid these risks entirely.
 
 ---
@@ -393,56 +432,56 @@ npm run clean-install # Clean npm install
 
 ```javascript
 // Auto-responder
-client.on('text', (packet) => {
-  if (packet.message.includes('!help')) {
-    client.queue('text', {
-      type: 'chat',
-      message: 'Available commands: !time, !players, !status'
-    })
+client.on("text", packet => {
+  if (packet.message.includes("!help")) {
+    client.queue("text", {
+      type: "chat",
+      message: "Available commands: !time, !players, !status",
+    });
   }
-})
+});
 
 // Command system
 const commands = {
-  '!time': () => new Date().toLocaleString(),
-  '!players': () => `Players online: ${server.players.length}`,
-  '!status': () => 'Bot is running!'
-}
+  "!time": () => new Date().toLocaleString(),
+  "!players": () => `Players online: ${server.players.length}`,
+  "!status": () => "Bot is running!",
+};
 ```
 
 ### Advanced Monitoring
 
 ```javascript
 // Player tracking
-client.on('add_player', (packet) => {
-  console.log(`Player joined: ${packet.username}`)
-})
+client.on("add_player", packet => {
+  console.log(`Player joined: ${packet.username}`);
+});
 
 // Block changes
-client.on('update_block', (packet) => {
-  console.log(`Block changed at ${packet.coordinates}`)
-})
+client.on("update_block", packet => {
+  console.log(`Block changed at ${packet.coordinates}`);
+});
 
 // Inventory monitoring
-client.on('inventory_transaction', (packet) => {
+client.on("inventory_transaction", packet => {
   // Track item movements
-})
+});
 ```
 
 ### Server Management
 
 ```javascript
 // Auto-restart on crash
-client.on('disconnect', (reason) => {
-  console.log(`Disconnected: ${reason}`)
-  setTimeout(() => reconnect(), 5000)
-})
+client.on("disconnect", reason => {
+  console.log(`Disconnected: ${reason}`);
+  setTimeout(() => reconnect(), 5000);
+});
 
 // Performance monitoring
 setInterval(() => {
-  const stats = client.getStats()
-  console.log(`Ping: ${stats.ping}ms, Packets: ${stats.packets}`)
-}, 30000)
+  const stats = client.getStats();
+  console.log(`Ping: ${stats.ping}ms, Packets: ${stats.packets}`);
+}, 30000);
 ```
 
 ---

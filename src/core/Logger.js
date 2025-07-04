@@ -1,8 +1,8 @@
-// logger.js - File-based logging system
+// src/core/Logger.js - Enhanced File-based logging system for Multi-Bot
 const fs = require('fs');
 const path = require('path');
 
-class FileLogger {
+class Logger {
   constructor(logFilePath = './logs/bot.log', maxLogSize = 5 * 1024 * 1024) { // 5MB max
     this.logFilePath = logFilePath;
     this.maxLogSize = maxLogSize;
@@ -35,29 +35,30 @@ class FileLogger {
   
   rotateLogIfNeeded() {
     try {
+      if (!fs.existsSync(this.logFilePath)) return;
+      
       const stats = fs.statSync(this.logFilePath);
       if (stats.size > this.maxLogSize) {
-        const backupPath = this.logFilePath.replace('.log', '.backup.log');
-        
-        // Keep only one backup
-        if (fs.existsSync(backupPath)) {
-          fs.unlinkSync(backupPath);
-        }
+        // Create backup filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = this.logFilePath.replace('.log', `_${timestamp}.log`);
         
         // Move current log to backup
         fs.renameSync(this.logFilePath, backupPath);
         
         // Create new log file
-        const rotationLog = {
+        const initialLog = {
           timestamp: new Date().toISOString(),
-          message: 'Log file rotated - previous log backed up',
+          message: `Log rotated. Previous log saved as: ${path.basename(backupPath)}`,
           type: 'info',
           source: 'system'
         };
-        fs.writeFileSync(this.logFilePath, JSON.stringify(rotationLog) + '\n');
+        fs.writeFileSync(this.logFilePath, JSON.stringify(initialLog) + '\n');
+        
+        console.log(`📁 Log rotated: ${backupPath}`);
       }
     } catch (error) {
-      console.error('Log rotation failed:', error.message);
+      console.error('Failed to rotate log:', error.message);
     }
   }
   
@@ -72,11 +73,6 @@ class FileLogger {
     try {
       // Append to log file
       fs.appendFileSync(this.logFilePath, JSON.stringify(logEntry) + '\n');
-      
-      // Also log to console with formatting
-      const timeStr = new Date().toLocaleTimeString();
-      const icon = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : 'ℹ️';
-      console.log(`${icon} [${timeStr}] ${message}`);
       
       // Check if rotation is needed after each log
       this.rotateLogIfNeeded();
@@ -136,50 +132,58 @@ class FileLogger {
     }
   }
   
-  // Watch log file for changes (for live updates)
-  watchLogs(callback, maxLines = 50) {
-    let lastSize = 0;
-    
-    try {
-      // Get initial size
-      if (fs.existsSync(this.logFilePath)) {
-        lastSize = fs.statSync(this.logFilePath).size;
-      }
-      
-      // Watch for file changes
-      const watcher = fs.watchFile(this.logFilePath, { interval: 1000 }, (curr, prev) => {
-        if (curr.size > lastSize) {
-          // File has grown, read new content
-          const logs = this.getRecentLogs(maxLines);
-          callback(logs);
-          lastSize = curr.size;
-        }
-      });
-      
-      return watcher;
-      
-    } catch (error) {
-      console.error('Failed to watch logs:', error.message);
-      return null;
-    }
-  }
-  
   // Clear log file
   clearLogs() {
     try {
-      const clearLog = {
+      const initialLog = {
         timestamp: new Date().toISOString(),
-        message: 'Log file cleared by user',
+        message: 'Logs cleared by user',
         type: 'info',
         source: 'system'
       };
-      fs.writeFileSync(this.logFilePath, JSON.stringify(clearLog) + '\n');
+      fs.writeFileSync(this.logFilePath, JSON.stringify(initialLog) + '\n');
       return true;
     } catch (error) {
       console.error('Failed to clear logs:', error.message);
       return false;
     }
   }
+  
+  // Get log file stats
+  getLogStats() {
+    try {
+      if (!fs.existsSync(this.logFilePath)) {
+        return {
+          exists: false,
+          size: 0,
+          lines: 0,
+          lastModified: null
+        };
+      }
+      
+      const stats = fs.statSync(this.logFilePath);
+      const content = fs.readFileSync(this.logFilePath, 'utf8');
+      const lines = content.trim().split('\n').filter(line => line.trim()).length;
+      
+      return {
+        exists: true,
+        size: stats.size,
+        lines: lines,
+        lastModified: stats.mtime.toISOString(),
+        path: this.logFilePath
+      };
+      
+    } catch (error) {
+      console.error('Failed to get log stats:', error.message);
+      return {
+        exists: false,
+        size: 0,
+        lines: 0,
+        lastModified: null,
+        error: error.message
+      };
+    }
+  }
 }
 
-module.exports = FileLogger;
+module.exports = Logger;
