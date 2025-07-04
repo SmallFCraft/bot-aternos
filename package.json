@@ -1,0 +1,48 @@
+{
+  "name": "aternos-bedrock-bot",
+  "version": "1.0.0",
+  "description": "24/7 Keep-Alive Bot for Aternos Bedrock Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node index.js",
+    "crack": "node -e \"const config = require('./config'); config.useCrackServerPreset(); console.log('✅ Crack mode enabled');\"",
+    "premium": "node -e \"const config = require('./config'); config.usePremiumServerPreset(); console.log('✅ Premium mode enabled');\"",
+    "fix-security": "node fix-security.js",
+    "clean-install": "npm cache clean --force && npm install"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "bedrock-protocol": "^3.5.1",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "bot",
+    "keepalive",
+    "aternos",
+    "automation"
+  ],
+  "author": "Bot Developer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  },
+  "overrides": {
+    "axios": "^1.6.0",
+    "tar": "^6.2.1",
+    "jsonwebtoken": "^9.0.0",
+    "jose-node-cjs-runtime": "^5.0.0"
+  }
+}

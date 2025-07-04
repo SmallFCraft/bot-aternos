@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: aternos-bedrock-bot
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --production
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BETTER_STACK_ENABLED
+        value: true
+      - key: BETTER_STACK_HEARTBEAT
+        value: https://uptime.betterstack.com/api/v1/heartbeat/67Kr9mNfxkmSA5KAxqz2ncEV
+      - key: BETTER_STACK_API_KEY
+        value: qSKMsyh2kvpkE7azw334VFrF
+    healthCheckPath: /health
+    autoDeploy: true
