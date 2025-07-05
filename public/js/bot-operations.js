@@ -2,6 +2,18 @@
 
 // Start a bot
 async function startBot(botId) {
+  // Check if bot is already running
+  const bot = bots.find(b => b.id === botId);
+  if (bot && (bot.isConnected || (bot.status && bot.status.isConnected))) {
+    Swal.fire({
+      icon: "warning",
+      title: "Bot Already Running",
+      text: "This bot is already connected and running!",
+      confirmButtonColor: "#4CAF50",
+    });
+    return;
+  }
+
   const botCard = document.querySelector(`[data-bot-id="${botId}"]`);
   const startBtn = botCard?.querySelector('button[onclick*="startBot"]');
 
@@ -26,23 +38,49 @@ async function startBot(botId) {
       loadBots(); // Refresh bot list
     } else {
       addLocalLog(`❌ Failed to start bot: ${data.error}`, "error");
-      alert(`Failed to start bot: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Start Bot",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error starting bot: ${error.message}`, "error");
-    alert(`Error starting bot: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Starting Bot",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   } finally {
-    // Remove loading state
-    if (startBtn) {
-      startBtn.classList.remove("loading");
-      startBtn.disabled = false;
-      startBtn.innerHTML = '<i class="bi bi-play"></i> Start';
-    }
+    // Don't remove loading state here - let polling mechanism handle button state
+    // The button state will be updated when bot status changes through loadBots()
   }
 }
 
 // Stop a bot
 async function stopBot(botId) {
+  // Check if bot is already stopped
+  const bot = bots.find(b => b.id === botId);
+  if (bot) {
+    const isConnected =
+      bot.isConnected || (bot.status && bot.status.isConnected) || false;
+    const isConnecting = bot.isConnecting || false;
+    const isReconnecting = bot.isReconnecting || false;
+
+    // Only show "already stopped" if bot is neither connected nor connecting nor reconnecting
+    if (!isConnected && !isConnecting && !isReconnecting) {
+      Swal.fire({
+        icon: "info",
+        title: "Bot Already Stopped",
+        text: "This bot is already disconnected!",
+        confirmButtonColor: "#4CAF50",
+      });
+      return;
+    }
+  }
+
   try {
     addLocalLog(`🛑 Stopping bot ${botId.slice(0, 8)}...`);
 
@@ -57,17 +95,90 @@ async function stopBot(botId) {
       loadBots(); // Refresh bot list
     } else {
       addLocalLog(`❌ Failed to stop bot: ${data.error}`, "error");
-      alert(`Failed to stop bot: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Stop Bot",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error stopping bot: ${error.message}`, "error");
-    alert(`Error stopping bot: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Stopping Bot",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
+  }
+}
+
+// Kill bot (force terminate)
+async function killBot(botId) {
+  const result = await Swal.fire({
+    title: "Force Kill Bot?",
+    text: "This will immediately terminate the bot without graceful shutdown. Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#f44336",
+    cancelButtonColor: "#4CAF50",
+    confirmButtonText: "Yes, kill it!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    addLocalLog(`💀 Force killing bot ${botId.slice(0, 8)}...`);
+
+    const response = await fetch(`/api/bots/${botId}/kill`, {
+      method: "POST",
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      addLocalLog(`💀 Bot force killed successfully`);
+      loadBots(); // Refresh bot list
+      Swal.fire({
+        icon: "success",
+        title: "Bot Killed",
+        text: "Bot has been force terminated!",
+        confirmButtonColor: "#4CAF50",
+      });
+    } else {
+      addLocalLog(`❌ Failed to kill bot: ${data.error}`, "error");
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Kill Bot",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
+    }
+  } catch (error) {
+    addLocalLog(`❌ Error killing bot: ${error.message}`, "error");
+    Swal.fire({
+      icon: "error",
+      title: "Error Killing Bot",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 
 // Restart a bot
 async function restartBot(botId) {
-  if (!confirm("Are you sure you want to restart this bot?")) return;
+  const result = await Swal.fire({
+    title: "Restart Bot?",
+    text: "Are you sure you want to restart this bot?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4CAF50",
+    cancelButtonColor: "#f44336",
+    confirmButtonText: "Yes, restart it!",
+  });
+
+  if (!result.isConfirmed) return;
 
   try {
     addLocalLog(`🔄 Restarting bot ${botId.slice(0, 8)}...`);
@@ -83,11 +194,21 @@ async function restartBot(botId) {
       loadBots(); // Refresh bot list
     } else {
       addLocalLog(`❌ Failed to restart bot: ${data.error}`, "error");
-      alert(`Failed to restart bot: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Restart Bot",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error restarting bot: ${error.message}`, "error");
-    alert(`Error restarting bot: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Restarting Bot",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 
@@ -95,17 +216,27 @@ async function restartBot(botId) {
 async function deleteBot(botId) {
   const bot = bots.find(b => b.id === botId);
   if (!bot) {
-    alert("Bot not found!");
+    Swal.fire({
+      icon: "error",
+      title: "Bot Not Found",
+      text: "Bot not found!",
+      confirmButtonColor: "#4CAF50",
+    });
     return;
   }
 
-  if (
-    !confirm(
-      `Are you sure you want to delete "${bot.config.name}"?\n\nThis action cannot be undone.`
-    )
-  ) {
-    return;
-  }
+  const result = await Swal.fire({
+    title: "Delete Bot?",
+    text: `Are you sure you want to delete "${bot.config.name}"? This action cannot be undone.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#f44336",
+    cancelButtonColor: "#4CAF50",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
 
   try {
     addLocalLog(`🗑️ Deleting bot ${bot.config.name}...`);
@@ -119,14 +250,29 @@ async function deleteBot(botId) {
     if (data.success) {
       addLocalLog(`✅ Bot deleted successfully`);
       loadBots(); // Refresh bot list
-      alert("✅ Bot deleted successfully!");
+      Swal.fire({
+        icon: "success",
+        title: "Bot Deleted",
+        text: "Bot deleted successfully!",
+        confirmButtonColor: "#4CAF50",
+      });
     } else {
       addLocalLog(`❌ Failed to delete bot: ${data.error}`, "error");
-      alert(`Failed to delete bot: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Delete Bot",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error deleting bot: ${error.message}`, "error");
-    alert(`Error deleting bot: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Deleting Bot",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 
@@ -147,29 +293,57 @@ async function toggleAntiAfk(botId) {
       loadBots(); // Refresh bot list
     } else {
       addLocalLog(`❌ Failed to toggle Anti-AFK: ${data.error}`, "error");
-      alert(`Failed to toggle Anti-AFK: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Toggle Anti-AFK",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error toggling Anti-AFK: ${error.message}`, "error");
-    alert(`Error toggling Anti-AFK: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Toggling Anti-AFK",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 
 // Bulk operations
 async function startAllBots() {
-  if (!confirm("Start all stopped bots?")) return;
+  const result = await Swal.fire({
+    title: "Start All Bots?",
+    text: "Start all stopped bots?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#4CAF50",
+    cancelButtonColor: "#f44336",
+    confirmButtonText: "Yes, start all!",
+  });
+
+  if (!result.isConfirmed) return;
 
   addLocalLog("🚀 Starting all stopped bots...");
 
-  // Fix: Use proper status detection
+  // Fix: Use proper status detection - exclude connecting/reconnecting bots
   const stoppedBots = bots.filter(bot => {
     const isConnected =
       bot.isConnected || (bot.status && bot.status.isConnected) || false;
-    return !isConnected;
+    const isConnecting = bot.isConnecting || false;
+    const isReconnecting = bot.isReconnecting || false;
+    // Only consider truly stopped bots (not connected AND not connecting AND not reconnecting)
+    return !isConnected && !isConnecting && !isReconnecting;
   });
 
   if (stoppedBots.length === 0) {
-    alert("No stopped bots to start!");
+    Swal.fire({
+      icon: "info",
+      title: "No Stopped Bots",
+      text: "No stopped bots to start!",
+      confirmButtonColor: "#4CAF50",
+    });
     return;
   }
 
@@ -191,23 +365,41 @@ async function startAllBots() {
 }
 
 async function stopAllBots() {
-  if (!confirm("Stop all running bots?")) return;
+  const result = await Swal.fire({
+    title: "Stop All Bots?",
+    text: "Stop all running bots?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#4CAF50",
+    cancelButtonColor: "#f44336",
+    confirmButtonText: "Yes, stop all!",
+  });
 
-  addLocalLog("🛑 Stopping all running bots...");
+  if (!result.isConfirmed) return;
 
-  // Fix: Use proper status detection
+  addLocalLog("🛑 Stopping all running/connecting bots...");
+
+  // Fix: Use proper status detection - include connecting/reconnecting bots
   const runningBots = bots.filter(bot => {
     const isConnected =
       bot.isConnected || (bot.status && bot.status.isConnected) || false;
-    return isConnected;
+    const isConnecting = bot.isConnecting || false;
+    const isReconnecting = bot.isReconnecting || false;
+    // Consider bot as "running" if it's connected OR connecting OR reconnecting
+    return isConnected || isConnecting || isReconnecting;
   });
 
   if (runningBots.length === 0) {
-    alert("No running bots to stop!");
+    Swal.fire({
+      icon: "info",
+      title: "No Running Bots",
+      text: "No running or connecting bots to stop!",
+      confirmButtonColor: "#4CAF50",
+    });
     return;
   }
 
-  addLocalLog(`📋 Found ${runningBots.length} running bots to stop`);
+  addLocalLog(`📋 Found ${runningBots.length} running/connecting bots to stop`);
 
   for (const bot of runningBots) {
     try {
@@ -224,11 +416,98 @@ async function stopAllBots() {
   addLocalLog("✅ Bulk stop operation completed");
 }
 
+// Kill all bots (force terminate)
+async function killAllBots() {
+  const result = await Swal.fire({
+    title: "Force Kill All Bots?",
+    text: "This will immediately terminate ALL bots without graceful shutdown. Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#f44336",
+    cancelButtonColor: "#4CAF50",
+    confirmButtonText: "Yes, kill all!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
+
+  addLocalLog("💀 Force killing all bots...");
+
+  if (bots.length === 0) {
+    Swal.fire({
+      icon: "info",
+      title: "No Bots",
+      text: "No bots to kill!",
+      confirmButtonColor: "#4CAF50",
+    });
+    return;
+  }
+
+  addLocalLog(`📋 Found ${bots.length} bots to kill`);
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const bot of bots) {
+    try {
+      const response = await fetch(`/api/bots/${bot.id}/kill`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        successCount++;
+        addLocalLog(`💀 Killed bot: ${bot.config.name}`);
+      } else {
+        failCount++;
+        addLocalLog(
+          `❌ Failed to kill bot ${bot.config.name}: ${data.error}`,
+          "error"
+        );
+      }
+    } catch (error) {
+      failCount++;
+      addLocalLog(
+        `❌ Error killing bot ${bot.config.name}: ${error.message}`,
+        "error"
+      );
+    }
+  }
+
+  // Refresh bot list
+  loadBots();
+
+  // Show summary
+  if (failCount === 0) {
+    addLocalLog(`💀 All ${successCount} bots killed successfully`);
+    Swal.fire({
+      icon: "success",
+      title: "All Bots Killed",
+      text: `Successfully killed ${successCount} bots!`,
+      confirmButtonColor: "#4CAF50",
+    });
+  } else {
+    addLocalLog(`⚠️ Killed ${successCount} bots, ${failCount} failed`);
+    Swal.fire({
+      icon: "warning",
+      title: "Partial Success",
+      text: `Killed ${successCount} bots successfully, but ${failCount} failed.`,
+      confirmButtonColor: "#4CAF50",
+    });
+  }
+}
+
 // View bot logs
 function viewBotLogs(botId) {
   const bot = bots.find(b => b.id === botId);
   if (!bot) {
-    alert("Bot not found!");
+    Swal.fire({
+      icon: "error",
+      title: "Bot Not Found",
+      text: "Bot not found!",
+      confirmButtonColor: "#4CAF50",
+    });
     return;
   }
 
@@ -267,7 +546,7 @@ function viewBotLogs(botId) {
 // Load bot logs
 async function loadBotLogs(botId) {
   try {
-    const response = await fetch(`/api/logs/bot/${botId}`);
+    const response = await fetch(`/api/bots/${botId}/logs`);
     const data = await response.json();
 
     const container = document.getElementById("botLogsContainer");
@@ -309,11 +588,22 @@ function refreshBotLogs(botId) {
 
 // Clear bot logs
 async function clearBotLogs(botId) {
-  if (!confirm("Are you sure you want to clear all logs for this bot?")) return;
+  const result = await Swal.fire({
+    title: "Clear Bot Logs?",
+    text: "Are you sure you want to clear all logs for this bot?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#f44336",
+    cancelButtonColor: "#4CAF50",
+    confirmButtonText: "Yes, clear logs!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
 
   try {
-    const response = await fetch(`/api/logs/bot/${botId}/clear`, {
-      method: "POST",
+    const response = await fetch(`/api/bots/${botId}/logs`, {
+      method: "DELETE",
     });
 
     const data = await response.json();
@@ -322,10 +612,20 @@ async function clearBotLogs(botId) {
       addLocalLog("✅ Bot logs cleared");
       loadBotLogs(botId); // Refresh logs display
     } else {
-      alert(`Failed to clear logs: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Clear Logs",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
-    alert(`Error clearing logs: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Error Clearing Logs",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 

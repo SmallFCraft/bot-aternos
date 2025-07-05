@@ -161,40 +161,96 @@ function updateBotCardStatus(botId, botData) {
     (botData.status && botData.status.isConnected) ||
     false;
 
+  const isConnecting = botData.isConnecting || false;
+  const hasSpawned = (botData.status && botData.status.hasSpawned) || false;
+
+  // Bot is fully ready only when connected AND spawned
+  const isFullyReady = isConnected && hasSpawned;
+
   // Update status indicator
   const statusDot = botCard.querySelector(".status-dot");
   const statusText = botCard.querySelector(".bot-status span:last-child");
 
   if (statusDot) {
-    statusDot.className = `status-dot ${isConnected ? "online" : "offline"}`;
+    if (isConnecting) {
+      statusDot.className = "status-dot connecting";
+    } else if (isConnected && !hasSpawned) {
+      statusDot.className = "status-dot connecting"; // Still connecting until spawned
+    } else {
+      statusDot.className = `status-dot ${isFullyReady ? "online" : "offline"}`;
+    }
   }
   if (statusText) {
-    statusText.textContent = isConnected ? "Online" : "Offline";
+    if (isConnecting) {
+      statusText.textContent = "Connecting...";
+    } else if (isConnected && !hasSpawned) {
+      statusText.textContent = "Spawning..."; // Show spawning status
+    } else {
+      statusText.textContent = isFullyReady ? "Online" : "Offline";
+    }
   }
 
   // Update bot card class
-  botCard.className = `bot-card ${isConnected ? "connected" : "disconnected"}`;
+  let cardClass = "bot-card";
+  if (isConnecting || (isConnected && !hasSpawned)) {
+    cardClass += " connecting"; // Keep connecting state until fully spawned
+  } else if (isFullyReady) {
+    cardClass += " connected";
+  } else {
+    cardClass += " disconnected";
+  }
+  botCard.className = cardClass;
 
-  // Update bot controls - ensure all buttons are visible
+  // Update bot controls - handle connecting state
   const controls = botCard.querySelector(".bot-controls");
   if (controls) {
     const startBtn = controls.querySelector('button[onclick*="startBot"]');
     const stopBtn = controls.querySelector('button[onclick*="stopBot"]');
+    const killBtn = controls.querySelector('button[onclick*="killBot"]');
     const restartBtn = controls.querySelector('button[onclick*="restartBot"]');
 
     if (startBtn && stopBtn) {
-      if (isConnected) {
-        startBtn.style.display = "none";
-        stopBtn.style.display = "inline-block";
-      } else {
+      if (isConnecting || (isConnected && !hasSpawned)) {
+        // Bot is connecting or spawning - disable start button and show loading state
         startBtn.style.display = "inline-block";
+        startBtn.disabled = true;
+        startBtn.classList.add("loading");
+        if (isConnecting) {
+          startBtn.innerHTML =
+            '<i class="bi bi-hourglass-split"></i> Starting...';
+        } else {
+          startBtn.innerHTML =
+            '<i class="bi bi-hourglass-split"></i> Spawning...';
+        }
         stopBtn.style.display = "none";
+        stopBtn.disabled = true;
+      } else if (isFullyReady) {
+        // Bot is fully ready (connected AND spawned) - show stop button
+        startBtn.style.display = "none";
+        startBtn.disabled = true;
+        startBtn.classList.remove("loading");
+        stopBtn.style.display = "inline-block";
+        stopBtn.disabled = false;
+      } else {
+        // Bot is disconnected - show start button
+        startBtn.style.display = "inline-block";
+        startBtn.disabled = false;
+        startBtn.classList.remove("loading");
+        startBtn.innerHTML = '<i class="bi bi-play"></i> Start';
+        stopBtn.style.display = "none";
+        stopBtn.disabled = true;
       }
     }
 
-    // Ensure restart button is always visible
+    // Ensure kill and restart buttons are always visible and properly enabled
+    if (killBtn) {
+      killBtn.style.display = "inline-block";
+      killBtn.disabled = false;
+    }
+
     if (restartBtn) {
       restartBtn.style.display = "inline-block";
+      restartBtn.disabled = false;
     }
   }
 
@@ -238,7 +294,17 @@ function renderBots() {
     .map(bot => {
       const isConnected =
         bot.isConnected || (bot.status && bot.status.isConnected) || false;
-      const statusClass = isConnected ? "connected" : "disconnected";
+      const isConnecting = bot.isConnecting || false;
+      const hasSpawned = (bot.status && bot.status.hasSpawned) || false;
+      const isFullyReady = isConnected && hasSpawned;
+
+      let statusClass = "disconnected";
+      if (isConnecting || (isConnected && !hasSpawned)) {
+        statusClass = "connecting";
+      } else if (isFullyReady) {
+        statusClass = "connected";
+      }
+
       const uptime = formatUptime(bot.status?.uptime || 0);
       const position = bot.status?.currentPosition || { x: 0, y: 0, z: 0 };
       const shortId = bot.id.slice(0, 8);
@@ -254,9 +320,21 @@ function renderBots() {
                     </div>
                     <div class="bot-status">
                         <span class="status-dot ${
-                          isConnected ? "online" : "offline"
+                          isConnecting || (isConnected && !hasSpawned)
+                            ? "connecting"
+                            : isFullyReady
+                            ? "online"
+                            : "offline"
                         }"></span>
-                        <span>${isConnected ? "Online" : "Offline"}</span>
+                        <span>${
+                          isConnecting
+                            ? "Connecting..."
+                            : isConnected && !hasSpawned
+                            ? "Spawning..."
+                            : isFullyReady
+                            ? "Online"
+                            : "Offline"
+                        }</span>
                     </div>
                 </div>
 
@@ -299,15 +377,43 @@ function renderBots() {
                 </div>
 
                 <div class="bot-controls">
-                    ${
-                      isConnected
-                        ? `<button class="btn btn-danger" onclick="stopBot('${bot.id}')">
-                            <i class="bi bi-stop"></i> Stop
-                        </button>`
-                        : `<button class="btn" onclick="startBot('${bot.id}')">
-                            <i class="bi bi-play"></i> Start
-                        </button>`
-                    }
+                    <button class="btn ${
+                      isConnecting || (isConnected && !hasSpawned)
+                        ? "loading"
+                        : ""
+                    }" onclick="startBot('${bot.id}')"
+                            style="display: ${
+                              isFullyReady ? "none" : "inline-block"
+                            }"
+                            ${
+                              isFullyReady ||
+                              isConnecting ||
+                              (isConnected && !hasSpawned)
+                                ? "disabled"
+                                : ""
+                            }>
+                        ${
+                          isConnecting
+                            ? '<i class="bi bi-hourglass-split"></i> Starting...'
+                            : isConnected && !hasSpawned
+                            ? '<i class="bi bi-hourglass-split"></i> Spawning...'
+                            : '<i class="bi bi-play"></i> Start'
+                        }
+                    </button>
+                    <button class="btn btn-danger" onclick="stopBot('${
+                      bot.id
+                    }')"
+                            style="display: ${
+                              isFullyReady ? "inline-block" : "none"
+                            }"
+                            ${!isFullyReady ? "disabled" : ""}>
+                        <i class="bi bi-stop"></i> Stop
+                    </button>
+                    <button class="btn btn-danger" onclick="killBot('${
+                      bot.id
+                    }')" title="Force kill bot immediately">
+                        <i class="bi bi-x-octagon"></i> Kill
+                    </button>
                     <button class="btn btn-warning" onclick="restartBot('${
                       bot.id
                     }')">

@@ -160,8 +160,19 @@ function toggleLogStream() {
 }
 
 // Clear logs
-function clearLogs() {
-  if (!confirm("Are you sure you want to clear all logs?")) return;
+async function clearLogs() {
+  const result = await Swal.fire({
+    title: "Clear All Logs?",
+    text: "Are you sure you want to clear all logs?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#f44336",
+    cancelButtonColor: "#4CAF50",
+    confirmButtonText: "Yes, clear all!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (!result.isConfirmed) return;
 
   logEntries = [];
   renderLogs();
@@ -274,21 +285,36 @@ async function testBetterStackHeartbeat() {
 
     if (data.success) {
       addLocalLog("✅ Better Stack heartbeat test successful");
-      alert("✅ Heartbeat test successful!");
+      Swal.fire({
+        icon: "success",
+        title: "Heartbeat Test Successful",
+        text: "Better Stack heartbeat test successful!",
+        confirmButtonColor: "#4CAF50",
+      });
       loadBetterStackStatus(); // Refresh status
     } else {
       addLocalLog(
         `❌ Better Stack heartbeat test failed: ${data.error}`,
         "error"
       );
-      alert(`❌ Heartbeat test failed: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Heartbeat Test Failed",
+        text: data.error,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(
       `❌ Better Stack heartbeat test error: ${error.message}`,
       "error"
     );
-    alert(`❌ Heartbeat test error: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Heartbeat Test Error",
+      text: error.message,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }
 
@@ -404,16 +430,31 @@ async function handleBetterStackSetup(e) {
       addLocalLog("✅ Better Stack configured successfully");
       closeBetterStackSetup();
       loadBetterStackStatus(); // Refresh status
-      alert("✅ Better Stack configured successfully!");
+      Swal.fire({
+        icon: "success",
+        title: "Better Stack Configured",
+        text: "Better Stack configured successfully!",
+        confirmButtonColor: "#4CAF50",
+      });
     } else {
       addLocalLog(
         `❌ Failed to configure Better Stack: ${data.error}`,
         "error"
       );
-      alert(`Failed to configure Better Stack: ${data.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Configuration Failed",
+        text: `Failed to configure Better Stack: ${data.error}`,
+        confirmButtonColor: "#4CAF50",
+      });
     }
   } catch (error) {
     addLocalLog(`❌ Error configuring Better Stack: ${error.message}`, "error");
-    alert(`Error configuring Better Stack: ${error.message}`);
+    Swal.fire({
+      icon: "error",
+      title: "Configuration Error",
+      text: `Error configuring Better Stack: ${error.message}`,
+      confirmButtonColor: "#4CAF50",
+    });
   }
 }

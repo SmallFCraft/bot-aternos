@@ -176,6 +176,24 @@ module.exports = botManager => {
     }
   });
 
+  // Kill bot (force terminate)
+  router.post("/:id/kill", async (req, res) => {
+    try {
+      const result = await botManager.killBot(req.params.id);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
   // Restart bot
   router.post("/:id/restart", async (req, res) => {
     try {

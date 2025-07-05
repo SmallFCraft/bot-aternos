@@ -57,6 +57,22 @@ class Bot {
     return true;
   }
 
+  // Check if bot is in connecting state
+  isConnecting() {
+    return this.status.isConnecting;
+  }
+
+  // Check if bot is in reconnecting state
+  isReconnecting() {
+    return this.reconnectTimeout !== null;
+  }
+
+  // Set connecting state
+  setConnecting(connecting) {
+    this.status.isConnecting = connecting;
+    this.log(`🔄 Bot connecting state: ${connecting}`, "info");
+  }
+
   // Start bot connection
   async connect() {
     this.log(
@@ -64,6 +80,10 @@ class Bot {
       "info"
     );
     this.log(`👤 Username: ${this.config.username}`, "info");
+
+    // Set connecting state
+    this.setConnecting(true);
+
     this.createBotConnection();
   }
 
@@ -71,16 +91,20 @@ class Bot {
   async disconnect() {
     this.log("🛑 Disconnecting bot...", "info");
 
-    // Clear intervals
+    // Clear intervals and timeouts
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
+      this.log("🔄 Reconnect timeout cleared", "info");
     }
 
     if (this.antiAfkInterval) {
       clearInterval(this.antiAfkInterval);
       this.antiAfkInterval = null;
     }
+
+    // Reset reconnect attempts to stop reconnection cycle
+    this.status.reconnectAttempts = 0;
 
     // Disconnect client
     if (this.client) {
@@ -92,13 +116,97 @@ class Bot {
       this.client = null;
     }
 
-    this.resetConnectionStatus();
+    this.resetConnectionStatus(); // This will reset connecting state
     this.log("✅ Bot disconnected", "info");
+  }
+
+  // Force kill bot immediately (like kill terminal)
+  async kill() {
+    this.log("💀 Force killing bot...", "warn");
+
+    // Immediately clear all timeouts and intervals
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    if (this.antiAfkInterval) {
+      clearInterval(this.antiAfkInterval);
+      this.antiAfkInterval = null;
+    }
+
+    // Reset reconnect attempts to stop reconnection cycle
+    this.status.reconnectAttempts = 0;
+
+    // Try graceful disconnect first, then force if needed
+    if (this.client) {
+      try {
+        // Attempt graceful disconnect with timeout
+        const disconnectPromise = new Promise(resolve => {
+          try {
+            this.client.disconnect();
+            this.log("💀 Sent disconnect packet to server", "info");
+            resolve();
+          } catch (error) {
+            this.log(`💀 Graceful disconnect failed: ${error.message}`, "warn");
+            resolve();
+          }
+        });
+
+        // Set a 2-second timeout for graceful disconnect
+        const timeoutPromise = new Promise(resolve => {
+          setTimeout(() => {
+            this.log(
+              "💀 Graceful disconnect timeout, forcing socket destruction",
+              "warn"
+            );
+            resolve();
+          }, 2000);
+        });
+
+        // Wait for either disconnect or timeout
+        await Promise.race([disconnectPromise, timeoutPromise]);
+
+        // Force destroy socket if it still exists
+        if (
+          this.client &&
+          this.client.socket &&
+          !this.client.socket.destroyed
+        ) {
+          this.client.socket.destroy();
+          this.log("💀 Socket force destroyed", "warn");
+        }
+
+        this.client = null;
+      } catch (error) {
+        // Ignore any errors during force kill
+        this.log(`💀 Error during kill: ${error.message}`, "warn");
+        this.client = null;
+      }
+    }
+
+    // Reset all status immediately
+    this.status.isConnected = false;
+    this.status.isConnecting = false;
+    this.status.hasSpawned = false;
+    this.status.reconnectAttempts = 0;
+    this.status.lastDisconnected = new Date().toISOString();
+
+    this.log("💀 Bot force killed", "warn");
   }
 
   // Create bot connection
   createBotConnection() {
     try {
+      // Check if bot should still be connecting (prevent reconnect after manual stop)
+      if (!this.status.isConnecting) {
+        this.log(
+          "🛑 Connection attempt cancelled - bot no longer in connecting state",
+          "info"
+        );
+        return;
+      }
+
       this.log(
         `🔗 Connecting to ${this.config.host}:${this.config.port}...`,
         "info"
@@ -113,8 +221,8 @@ class Bot {
         }
       }
 
-      // Reset connection status
-      this.resetConnectionStatus();
+      // Reset connection status but keep connecting state
+      this.resetConnectionStatus(false);
 
       // Create client options
       const clientOptions = {
@@ -157,10 +265,18 @@ class Bot {
 
       this.log("🎮 Bot spawned successfully!", "info");
       this.status.isConnected = true;
+      this.status.isConnecting = false; // Clear connecting state
       this.status.hasSpawned = true;
       this.status.lastConnected = now.toISOString();
       this.status.reconnectAttempts = 0;
       this.status.currentPosition = { x: 0, y: 64, z: 0 };
+
+      // Clear any pending reconnect timeout
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+        this.log("🔄 Cleared pending reconnect timeout", "info");
+      }
 
       // Start anti-AFK if enabled
       if (this.config.antiAfk.enabled) {
@@ -226,7 +342,7 @@ class Bot {
 
       const reason = packet?.reason || "Unknown reason";
       this.log(`🔌 Disconnected: ${reason}`, "warn");
-      this.resetConnectionStatus();
+      this.resetConnectionStatus(false); // Don't reset connecting state yet
       this.handleDisconnect(`Disconnect: ${reason}`);
     });
 
@@ -246,7 +362,7 @@ class Bot {
       }
 
       this.log(`❌ Connection error: ${errorMessage}`, "error");
-      this.resetConnectionStatus();
+      this.resetConnectionStatus(false); // Don't reset connecting state yet
       this.handleDisconnect(`Error: ${errorMessage}`);
     });
 
@@ -263,10 +379,16 @@ class Bot {
   }
 
   // Reset connection status
-  resetConnectionStatus() {
+  resetConnectionStatus(resetConnecting = true) {
     this.status.isConnected = false;
     this.status.hasSpawned = false;
     this.status.lastDisconnected = new Date().toISOString();
+
+    // Only reset connecting state if explicitly requested
+    if (resetConnecting) {
+      this.status.isConnecting = false;
+    }
+
     this.stopAntiAfk();
   }
 
@@ -294,8 +416,14 @@ class Bot {
     // Give up after max attempts
     if (this.status.reconnectAttempts >= this.config.maxReconnectAttempts) {
       this.log("❌ Max reconnect attempts reached. Stopping bot.", "error");
+      // Clear connecting state when giving up
+      this.status.isConnecting = false;
       return;
     }
+
+    // Keep connecting state during reconnection attempts
+    // This ensures UI shows bot as "connecting" during reconnect delays
+    this.status.isConnecting = true;
 
     // Schedule reconnection
     this.reconnectTimeout = setTimeout(() => {

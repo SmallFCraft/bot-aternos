@@ -156,13 +156,51 @@ class BotManager {
         throw new Error("Bot not found");
       }
 
-      // Stop bot if running
-      if (bot.isConnected()) {
+      // Stop bot if running, connecting, or reconnecting
+      if (bot.isConnected() || bot.isConnecting() || bot.isReconnecting()) {
         await this.stopBot(botId);
+        this.broadcastLog(
+          `🛑 Stopped bot before deletion: ${bot.config.name}`,
+          "info"
+        );
       }
 
-      // Remove from memory
+      // Remove from memory FIRST to prevent any further operations
       this.bots.delete(botId);
+      this.broadcastLog(
+        `🗑️ Bot removed from memory: ${bot.config.name}`,
+        "info"
+      );
+
+      // Delete bot log file
+      const logFilePath = `./logs/bots/bot-${botId}.log`;
+      try {
+        if (fs.existsSync(logFilePath)) {
+          fs.unlinkSync(logFilePath);
+          this.broadcastLog(`🗑️ Bot log file deleted: ${logFilePath}`, "info");
+        }
+
+        // Also delete any rotated log files
+        const logDir = "./logs/bots";
+        if (fs.existsSync(logDir)) {
+          const files = fs.readdirSync(logDir);
+          const botLogFiles = files.filter(
+            file => file.startsWith(`bot-${botId}_`) && file.endsWith(".log")
+          );
+
+          for (const file of botLogFiles) {
+            const filePath = path.join(logDir, file);
+            fs.unlinkSync(filePath);
+            this.broadcastLog(`🗑️ Rotated log file deleted: ${file}`, "info");
+          }
+        }
+      } catch (logError) {
+        this.broadcastLog(
+          `⚠️ Failed to delete log files: ${logError.message}`,
+          "warn"
+        );
+        // Don't fail the entire deletion if log cleanup fails
+      }
 
       // Save to storage
       await this.saveBotsToStorage();
@@ -227,6 +265,27 @@ class BotManager {
     }
   }
 
+  // Force kill a bot immediately
+  async killBot(botId) {
+    try {
+      const bot = this.bots.get(botId);
+      if (!bot) {
+        throw new Error("Bot not found");
+      }
+
+      await bot.kill();
+      this.broadcastLog(`💀 Bot force killed: ${bot.config.name}`, "warn");
+
+      return { success: true };
+    } catch (error) {
+      this.broadcastLog(`❌ Failed to kill bot: ${error.message}`, "error");
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   // Restart a bot
   async restartBot(botId) {
     try {
@@ -264,6 +323,8 @@ class BotManager {
         config: bot.config,
         status: bot.getStatus(),
         isConnected: bot.isConnected(),
+        isConnecting: bot.isConnecting(), // Add connecting state
+        isReconnecting: bot.isReconnecting(), // Add reconnecting state
       });
     }
     return bots;
@@ -279,6 +340,8 @@ class BotManager {
       config: bot.config,
       status: bot.getStatus(),
       isConnected: bot.isConnected(),
+      isConnecting: bot.isConnecting(), // Add connecting state
+      isReconnecting: bot.isReconnecting(), // Add reconnecting state
     };
   }
 
