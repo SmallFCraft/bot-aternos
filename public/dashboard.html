@@ -151,76 +151,144 @@
 
     <!-- Monitor Setup Guide Modal -->
     <div id="monitorSetupModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h2 class="modal-title">📊 Better Stack Monitor Setup Guide</h2>
                 <span class="close" onclick="closeMonitorSetupGuide()">&times;</span>
             </div>
-            <div style="padding: 20px; max-height: 70vh; overflow-y: auto;">
-                <div style="background: #1a1a1a; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h3 style="color: #4CAF50; margin-top: 0;">🎯 Step-by-Step Setup</h3>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #FFA726;">1. 🌐 Access Better Stack Dashboard</h4>
-                        <p>Go to <a href="https://dashboard.render.com/" target="_blank" style="color: #4CAF50;">Render Dashboard</a> and find your deployed app.</p>
-                        <p>Your production URL: <strong style="color: #4CAF50;">https://bot-aternos-6ltq.onrender.com/</strong></p>
+            <div style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+                <!-- Quick Actions -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <button class="btn btn-secondary" onclick="testHealthEndpoint()" style="padding: 12px;">
+                        <i class="bi bi-heart-pulse"></i> Test Health Endpoint
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyHealthUrl()" style="padding: 12px;">
+                        <i class="bi bi-clipboard"></i> Copy Health URL
+                    </button>
+                    <button class="btn btn-secondary" onclick="openBetterStack()" style="padding: 12px;">
+                        <i class="bi bi-box-arrow-up-right"></i> Open Better Stack
+                    </button>
+                    <button class="btn btn-secondary" onclick="openStatusPage()" style="padding: 12px;">
+                        <i class="bi bi-graph-up"></i> View Status Page
+                    </button>
+                </div>
+
+                <!-- Setup Steps -->
+                <div style="background: #1a1a1a; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="color: #4CAF50; margin-top: 0; display: flex; align-items: center;">
+                        <i class="bi bi-list-check" style="margin-right: 10px;"></i>
+                        Step-by-Step Setup
+                    </h3>
+
+                    <!-- Step 1 -->
+                    <div class="setup-step" style="margin-bottom: 25px; padding: 20px; background: #2a2a2a; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                        <h4 style="color: #4CAF50; margin-top: 0; display: flex; align-items: center;">
+                            <span style="background: #4CAF50; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold; font-size: 14px;">1</span>
+                            Access Better Stack Dashboard
+                        </h4>
+                        <p style="margin-bottom: 15px;">Create your Better Stack account and access the monitoring dashboard:</p>
+                        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <p style="margin: 0;"><strong>Better Stack URL:</strong> <a href="https://betterstack.com/" target="_blank" style="color: #4CAF50;">https://betterstack.com/</a></p>
+                            <p style="margin: 5px 0 0 0;"><strong>Your Production URL:</strong> <code style="background: #333; padding: 2px 6px; border-radius: 4px;">https://bot-aternos-6ltq.onrender.com/</code></p>
+                        </div>
+                        <button class="btn btn-sm" onclick="openBetterStack()" style="background: #4CAF50; color: #000;">
+                            <i class="bi bi-box-arrow-up-right"></i> Open Better Stack
+                        </button>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #FFA726;">2. 📊 Create Monitor in Better Stack</h4>
-                        <ol style="color: #ccc;">
-                            <li>Login to <a href="https://betterstack.com/" target="_blank" style="color: #4CAF50;">Better Stack</a></li>
-                            <li>Go to <strong>Uptime</strong> → <strong>Monitors</strong></li>
+                    <!-- Step 2 -->
+                    <div class="setup-step" style="margin-bottom: 25px; padding: 20px; background: #2a2a2a; border-radius: 10px; border-left: 4px solid #FFA726;">
+                        <h4 style="color: #FFA726; margin-top: 0; display: flex; align-items: center;">
+                            <span style="background: #FFA726; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold; font-size: 14px;">2</span>
+                            Create HTTP Monitor
+                        </h4>
+                        <ol style="color: #ccc; margin-bottom: 15px;">
+                            <li>Navigate to <strong>Uptime</strong> → <strong>Monitors</strong></li>
                             <li>Click <strong>"Create Monitor"</strong></li>
-                            <li>Choose <strong>"HTTP"</strong> monitor type</li>
+                            <li>Select <strong>"HTTP"</strong> monitor type</li>
+                            <li>Fill in the configuration below</li>
                         </ol>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #FFA726;">3. ⚙️ Configure Monitor Settings</h4>
-                        <div style="background: #2a2a2a; padding: 15px; border-radius: 8px;">
-                            <p><strong>Monitor Name:</strong> <code>Aternos Bot System</code></p>
-                            <p><strong>URL:</strong> <code>https://bot-aternos-6ltq.onrender.com/api/health</code></p>
-                            <p><strong>Method:</strong> <code>GET</code></p>
-                            <p><strong>Check Frequency:</strong> <code>1 minute</code></p>
-                            <p><strong>Timeout:</strong> <code>30 seconds</code></p>
-                            <p><strong>Expected Status Code:</strong> <code>200</code></p>
+                    <!-- Step 3 -->
+                    <div class="setup-step" style="margin-bottom: 25px; padding: 20px; background: #2a2a2a; border-radius: 10px; border-left: 4px solid #2196F3;">
+                        <h4 style="color: #2196F3; margin-top: 0; display: flex; align-items: center;">
+                            <span style="background: #2196F3; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold; font-size: 14px;">3</span>
+                            Monitor Configuration
+                        </h4>
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; align-items: center;">
+                                <strong>Monitor Name:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">Aternos Bot System</code>
+                                <strong>URL:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">https://bot-aternos-6ltq.onrender.com/api/health</code>
+                                <strong>Method:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">GET</code>
+                                <strong>Check Frequency:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">1 minute</code>
+                                <strong>Timeout:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">30 seconds</code>
+                                <strong>Expected Status:</strong> <code style="background: #333; padding: 4px 8px; border-radius: 4px;">200 OK</code>
+                            </div>
                         </div>
+                        <button class="btn btn-sm" onclick="copyHealthUrl()" style="background: #2196F3; color: #000;">
+                            <i class="bi bi-clipboard"></i> Copy Health URL
+                        </button>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #FFA726;">4. 🔔 Setup Notifications</h4>
-                        <ul style="color: #ccc;">
-                            <li>Add your email for downtime alerts</li>
-                            <li>Configure Discord/Slack webhooks (optional)</li>
-                            <li>Set escalation policies</li>
+                    <!-- Step 4 -->
+                    <div class="setup-step" style="margin-bottom: 25px; padding: 20px; background: #2a2a2a; border-radius: 10px; border-left: 4px solid #9C27B0;">
+                        <h4 style="color: #9C27B0; margin-top: 0; display: flex; align-items: center;">
+                            <span style="background: #9C27B0; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold; font-size: 14px;">4</span>
+                            Setup Notifications
+                        </h4>
+                        <ul style="color: #ccc; margin-bottom: 15px;">
+                            <li><strong>Email Alerts:</strong> Add your email for downtime notifications</li>
+                            <li><strong>Discord/Slack:</strong> Configure webhook integrations (optional)</li>
+                            <li><strong>Escalation:</strong> Set up escalation policies for critical issues</li>
+                            <li><strong>Maintenance:</strong> Schedule maintenance windows</li>
                         </ul>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #FFA726;">5. 📈 Create Status Page</h4>
-                        <p>Your status page: <a href="https://aternos.betteruptime.com/" target="_blank" style="color: #4CAF50;">https://aternos.betteruptime.com/</a></p>
-                        <ul style="color: #ccc;">
-                            <li>Go to <strong>Status Pages</strong> in Better Stack</li>
+                    <!-- Step 5 -->
+                    <div class="setup-step" style="margin-bottom: 0; padding: 20px; background: #2a2a2a; border-radius: 10px; border-left: 4px solid #FF5722;">
+                        <h4 style="color: #FF5722; margin-top: 0; display: flex; align-items: center;">
+                            <span style="background: #FF5722; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold; font-size: 14px;">5</span>
+                            Create Status Page
+                        </h4>
+                        <p style="margin-bottom: 15px;">Your public status page: <a href="https://aternos.betteruptime.com/" target="_blank" style="color: #FF5722;">https://aternos.betteruptime.com/</a></p>
+                        <ul style="color: #ccc; margin-bottom: 15px;">
+                            <li>Go to <strong>Status Pages</strong> in Better Stack dashboard</li>
                             <li>Add your monitor to the status page</li>
-                            <li>Customize branding and colors</li>
-                            <li>Enable public access</li>
+                            <li>Customize branding, colors, and domain</li>
+                            <li>Enable public access for transparency</li>
                         </ul>
-                    </div>
-
-                    <div style="background: #0d4f3c; padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50;">
-                        <h4 style="color: #4CAF50; margin-top: 0;">✅ Health Check Endpoint</h4>
-                        <p style="margin-bottom: 10px;">Your app provides a health check endpoint:</p>
-                        <p><strong>URL:</strong> <code>https://bot-aternos-6ltq.onrender.com/api/health</code></p>
-                        <p><strong>Response:</strong> JSON with system status, bot count, uptime</p>
-                        <button class="btn btn-secondary" onclick="testHealthEndpoint()" style="margin-top: 10px;">
-                            <i class="bi bi-heart-pulse"></i> Test Health Endpoint
+                        <button class="btn btn-sm" onclick="openStatusPage()" style="background: #FF5722; color: #000;">
+                            <i class="bi bi-graph-up"></i> View Status Page
                         </button>
                     </div>
                 </div>
 
-                <div style="text-align: center;">
-                    <button class="btn" onclick="closeMonitorSetupGuide()">Got it!</button>
+                <!-- Health Check Info -->
+                <div style="background: linear-gradient(135deg, #0d4f3c, #1a5f4a); padding: 20px; border-radius: 12px; border: 1px solid #4CAF50;">
+                    <h4 style="color: #4CAF50; margin-top: 0; display: flex; align-items: center;">
+                        <i class="bi bi-heart-pulse" style="margin-right: 10px;"></i>
+                        Health Check Endpoint
+                    </h4>
+                    <p style="margin-bottom: 15px;">Your application provides a comprehensive health check endpoint:</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin: 0;"><strong>Endpoint:</strong> <code style="background: #333; padding: 2px 6px; border-radius: 4px;">https://bot-aternos-6ltq.onrender.com/api/health</code></p>
+                        <p style="margin: 5px 0 0 0;"><strong>Response:</strong> JSON with system status, bot count, uptime, and performance metrics</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-sm" onclick="testHealthEndpoint()" style="background: #4CAF50; color: #000;">
+                            <i class="bi bi-heart-pulse"></i> Test Endpoint
+                        </button>
+                        <button class="btn btn-sm" onclick="copyHealthUrl()" style="background: transparent; border: 1px solid #4CAF50; color: #4CAF50;">
+                            <i class="bi bi-clipboard"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 25px;">
+                    <button class="btn" onclick="closeMonitorSetupGuide()" style="padding: 12px 30px;">
+                        <i class="bi bi-check-circle"></i> Got it!
+                    </button>
                 </div>
             </div>
         </div>

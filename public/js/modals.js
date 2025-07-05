@@ -167,7 +167,29 @@ function showCreateBotModal() {
 }
 
 function closeCreateBotModal() {
-  closeModal("createBotModal");
+  const modal = document.getElementById("createBotModal");
+  if (modal) {
+    // Force close immediately without animation
+    modal.style.display = "none";
+    modal.classList.remove("closing");
+    modal.setAttribute("aria-hidden", "true");
+
+    // Restore body scroll
+    document.body.style.overflow = "";
+
+    // Remove escape key handler
+    if (modal.getAttribute("data-escape-handler")) {
+      document.removeEventListener("keydown", handleEscape);
+      modal.removeAttribute("data-escape-handler");
+    }
+  } else {
+    // Try to find any modal that might be open and close it
+    const anyModal = document.querySelector(".modal[style*='block']");
+    if (anyModal) {
+      anyModal.style.display = "none";
+      document.body.style.overflow = "";
+    }
+  }
 }
 
 // Handle create bot form submission
@@ -202,10 +224,14 @@ async function handleCreateBot(e) {
 
     const data = await response.json();
 
+    // ALWAYS close modal immediately, regardless of success/failure
+    closeCreateBotModal();
+
     if (data.success) {
       addLocalLog(`✅ Bot created: ${formData.name}`);
-      closeCreateBotModal();
-      loadBots(); // Refresh bot list
+
+      // Refresh bot list and show success
+      loadBots();
       Swal.fire({
         icon: "success",
         title: "Bot Created",
@@ -214,6 +240,7 @@ async function handleCreateBot(e) {
       });
     } else {
       addLocalLog(`❌ Failed to create bot: ${data.error}`, "error");
+
       Swal.fire({
         icon: "error",
         title: "Failed to Create Bot",
@@ -222,6 +249,9 @@ async function handleCreateBot(e) {
       });
     }
   } catch (error) {
+    // ALWAYS close modal immediately on error too
+    closeCreateBotModal();
+
     addLocalLog(`❌ Error creating bot: ${error.message}`, "error");
     Swal.fire({
       icon: "error",

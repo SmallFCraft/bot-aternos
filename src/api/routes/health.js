@@ -56,16 +56,9 @@ module.exports = botManager => {
       }
 
       // Set appropriate HTTP status code
-      const httpStatus =
-        healthStatus.status === "healthy"
-          ? 200
-          : healthStatus.status === "partial"
-          ? 200
-          : healthStatus.status === "warning"
-          ? 200
-          : healthStatus.status === "degraded"
-          ? 503
-          : 500;
+      // Always return 200 for health check unless there's a server error
+      // Bot status should not affect server health status
+      const httpStatus = 200;
 
       res.status(httpStatus).json(healthStatus);
     } catch (error) {

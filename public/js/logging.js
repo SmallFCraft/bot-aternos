@@ -346,47 +346,115 @@ async function showBetterStackSetup() {
             <h2 class="modal-title">⚙️ Better Stack Configuration</h2>
             <span class="close" onclick="closeBetterStackSetup()">&times;</span>
         </div>
+
+        <!-- Quick Actions -->
+        <div style="padding: 0 20px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="testBetterStackHeartbeat()" style="padding: 8px 12px; font-size: 0.9em;">
+                    <i class="bi bi-heart-pulse"></i> Test Heartbeat
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="copyHeartbeatTemplate()" style="padding: 8px 12px; font-size: 0.9em;">
+                    <i class="bi bi-clipboard"></i> Copy Template
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="openBetterStack()" style="padding: 8px 12px; font-size: 0.9em;">
+                    <i class="bi bi-box-arrow-up-right"></i> Open Dashboard
+                </button>
+            </div>
+        </div>
+
         <form id="betterStackForm">
-            <div class="form-group">
-                <label class="form-label">Heartbeat URL</label>
-                <input type="url" id="heartbeatUrl" class="form-input" required
-                       value="${currentConfig.heartbeatUrl}"
-                       placeholder="https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY">
-                <small style="color: #666; font-size: 0.8em;">
-                    Get this URL from your Better Stack dashboard → Heartbeat monitors
-                </small>
+            <!-- Heartbeat URL Section -->
+            <div style="background: #1a1a1a; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h4 style="color: #4CAF50; margin-top: 0; display: flex; align-items: center;">
+                    <i class="bi bi-heart-pulse" style="margin-right: 8px;"></i>
+                    Heartbeat Configuration
+                </h4>
+
+                <div class="form-group">
+                    <label class="form-label">Heartbeat URL</label>
+                    <div style="position: relative;">
+                        <input type="url" id="heartbeatUrl" class="form-input" required
+                               value="${currentConfig.heartbeatUrl}"
+                               placeholder="https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY"
+                               style="padding-right: 40px;">
+                        <button type="button" onclick="copyHeartbeatUrl()"
+                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #4CAF50; cursor: pointer;">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                        <i class="bi bi-info-circle"></i> Get this URL from Better Stack → Heartbeat monitors → Create monitor
+                    </small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Check Interval</label>
+                        <select id="checkInterval" class="form-input">
+                            <option value="30" ${
+                              currentConfig.interval === 30 ? "selected" : ""
+                            }>30 seconds</option>
+                            <option value="60" ${
+                              currentConfig.interval === 60 ? "selected" : ""
+                            }>1 minute (recommended)</option>
+                            <option value="120" ${
+                              currentConfig.interval === 120 ? "selected" : ""
+                            }>2 minutes</option>
+                            <option value="300" ${
+                              currentConfig.interval === 300 ? "selected" : ""
+                            }>5 minutes</option>
+                            <option value="600" ${
+                              currentConfig.interval === 600 ? "selected" : ""
+                            }>10 minutes</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                            How often to send heartbeat signals
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <div style="display: flex; align-items: center; margin-top: 8px; padding: 10px; background: #2a2a2a; border-radius: 6px;">
+                            <input type="checkbox" id="enableBetterStack" class="checkbox"
+                                   ${currentConfig.enabled ? "checked" : ""}>
+                            <label for="enableBetterStack" class="form-label" style="margin-left: 10px; margin-bottom: 0;">
+                                Enable Better Stack monitoring
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Check Interval (seconds)</label>
-                <input type="number" id="checkInterval" class="form-input" min="30" max="3600" value="${
-                  currentConfig.interval
-                }">
+            <!-- Help Section -->
+            <div style="background: linear-gradient(135deg, #1a3a5c, #2a4a6c); padding: 20px; border-radius: 10px; border: 1px solid #2196F3; margin-bottom: 20px;">
+                <h4 style="color: #2196F3; margin-top: 0; display: flex; align-items: center;">
+                    <i class="bi bi-question-circle" style="margin-right: 8px;"></i>
+                    How to get Heartbeat URL?
+                </h4>
+                <ol style="color: #ccc; margin-bottom: 15px; padding-left: 20px;">
+                    <li>Go to <a href="https://betterstack.com/" target="_blank" style="color: #2196F3;">Better Stack Dashboard</a></li>
+                    <li>Navigate to <strong>Uptime</strong> → <strong>Heartbeat monitors</strong></li>
+                    <li>Click <strong>"Create heartbeat monitor"</strong></li>
+                    <li>Set name as <code style="background: #333; padding: 2px 4px; border-radius: 3px;">Aternos Bot System</code></li>
+                    <li>Copy the generated heartbeat URL</li>
+                </ol>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-sm" onclick="openBetterStack()" style="background: #2196F3; color: #000;">
+                        <i class="bi bi-box-arrow-up-right"></i> Open Better Stack
+                    </button>
+                    <button type="button" class="btn btn-sm" onclick="showMonitorSetupGuide()" style="background: transparent; border: 1px solid #2196F3; color: #2196F3;">
+                        <i class="bi bi-book"></i> Setup Guide
+                    </button>
+                </div>
             </div>
 
-            <div class="checkbox-group">
-                <input type="checkbox" id="enableBetterStack" class="checkbox" ${
-                  currentConfig.enabled ? "checked" : ""
-                }>
-                <label for="enableBetterStack" class="form-label">Enable Better Stack Monitoring</label>
-            </div>
-
-            <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; border-left: 4px solid #4CAF50;">
-                <h4 style="color: #4CAF50; margin-top: 0;">💡 Current Configuration</h4>
-                <p style="margin-bottom: 5px;"><strong>From .env file:</strong></p>
-                <p style="font-family: monospace; font-size: 0.9em; color: #ccc; margin: 5px 0;">
-                    BETTER_STACK_HEARTBEAT=${
-                      currentConfig.heartbeatUrl || "Not set"
-                    }
-                </p>
-                <p style="font-size: 0.8em; color: #888;">
-                    Changes here will update the runtime configuration. To persist changes, update your .env file.
-                </p>
-            </div>
-
-            <div style="margin-top: 20px; text-align: right;">
+            <div style="margin-top: 25px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeBetterStackSetup()">Cancel</button>
-                <button type="submit" class="btn">Save Configuration</button>
+                <button type="button" class="btn btn-secondary" onclick="testBetterStackHeartbeat()">
+                    <i class="bi bi-heart-pulse"></i> Test First
+                </button>
+                <button type="submit" class="btn" style="background: #4CAF50; color: #000;">
+                    <i class="bi bi-check-circle"></i> Save Configuration
+                </button>
             </div>
         </form>
     `;
@@ -403,6 +471,65 @@ async function showBetterStackSetup() {
 
 function closeBetterStackSetup() {
   closeModal("betterStackSetupModal");
+}
+
+// New utility functions for Better Stack Configuration
+function copyHeartbeatTemplate() {
+  const template =
+    "https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY_HERE";
+  navigator.clipboard
+    .writeText(template)
+    .then(() => {
+      addLocalLog("📋 Heartbeat URL template copied to clipboard");
+      Swal.fire({
+        icon: "success",
+        title: "Template Copied!",
+        text: "Heartbeat URL template copied. Replace YOUR_KEY_HERE with your actual key.",
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+      });
+    })
+    .catch(err => {
+      addLocalLog("❌ Failed to copy template", "error");
+      Swal.fire({
+        icon: "info",
+        title: "Heartbeat URL Template",
+        text: template,
+        confirmButtonColor: "#4CAF50",
+      });
+    });
+}
+
+function copyHeartbeatUrl() {
+  const urlInput = document.getElementById("heartbeatUrl");
+  if (urlInput && urlInput.value) {
+    navigator.clipboard
+      .writeText(urlInput.value)
+      .then(() => {
+        addLocalLog("📋 Heartbeat URL copied to clipboard");
+        Swal.fire({
+          icon: "success",
+          title: "URL Copied!",
+          text: "Current heartbeat URL copied to clipboard",
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+        });
+      })
+      .catch(err => {
+        addLocalLog("❌ Failed to copy URL", "error");
+      });
+  } else {
+    Swal.fire({
+      icon: "warning",
+      title: "No URL to Copy",
+      text: "Please enter a heartbeat URL first",
+      confirmButtonColor: "#4CAF50",
+    });
+  }
 }
 
 // Handle Better Stack setup
@@ -426,9 +553,11 @@ async function handleBetterStackSetup(e) {
 
     const data = await response.json();
 
+    // Always close modal first
+    closeBetterStackSetup();
+
     if (data.success) {
       addLocalLog("✅ Better Stack configured successfully");
-      closeBetterStackSetup();
       loadBetterStackStatus(); // Refresh status
       Swal.fire({
         icon: "success",
@@ -449,6 +578,9 @@ async function handleBetterStackSetup(e) {
       });
     }
   } catch (error) {
+    // Always close modal on error too
+    closeBetterStackSetup();
+
     addLocalLog(`❌ Error configuring Better Stack: ${error.message}`, "error");
     Swal.fire({
       icon: "error",

@@ -10,6 +10,52 @@ function closeMonitorSetupGuide() {
   document.getElementById("monitorSetupModal").style.display = "none";
 }
 
+// New utility functions for Better Stack setup
+function copyHealthUrl() {
+  const healthUrl = "https://bot-aternos-6ltq.onrender.com/api/health";
+  navigator.clipboard
+    .writeText(healthUrl)
+    .then(() => {
+      addLocalLog("📋 Health URL copied to clipboard");
+      Swal.fire({
+        icon: "success",
+        title: "URL Copied!",
+        text: "Health endpoint URL copied to clipboard",
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+      });
+    })
+    .catch(err => {
+      addLocalLog("❌ Failed to copy URL", "error");
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = healthUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      Swal.fire({
+        icon: "info",
+        title: "URL Ready to Copy",
+        text: healthUrl,
+        confirmButtonColor: "#4CAF50",
+      });
+    });
+}
+
+function openBetterStack() {
+  window.open("https://betterstack.com/", "_blank");
+  addLocalLog("🌐 Opened Better Stack dashboard");
+}
+
+function openStatusPage() {
+  window.open("https://aternos.betteruptime.com/", "_blank");
+  addLocalLog("📊 Opened status page");
+}
+
 async function testProductionEndpoint() {
   try {
     addLocalLog("🌐 Testing production endpoint...");
