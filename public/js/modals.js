@@ -14,6 +14,12 @@ function showModal(modalId, content) {
 
   modal.innerHTML = `<div class="modal-content">${content}</div>`;
   modal.style.display = "block";
+  modal.setAttribute("aria-hidden", "false");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = "hidden";
 
   // Close modal when clicking outside
   modal.onclick = function (event) {
@@ -21,12 +27,58 @@ function showModal(modalId, content) {
       closeModal(modalId);
     }
   };
+
+  // Close modal with Escape key
+  const handleEscape = function (event) {
+    if (event.key === "Escape") {
+      closeModal(modalId);
+    }
+  };
+
+  document.addEventListener("keydown", handleEscape);
+  modal.setAttribute("data-escape-handler", "true");
+
+  // Focus first input for better accessibility
+  setTimeout(() => {
+    const firstInput = modal.querySelector("input, select, textarea");
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }, 100);
 }
 
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
-    modal.style.display = "none";
+    // Add closing animation
+    modal.classList.add("closing");
+
+    // Remove escape key handler
+    if (modal.getAttribute("data-escape-handler")) {
+      document.removeEventListener("keydown", handleEscape);
+      modal.removeAttribute("data-escape-handler");
+    }
+
+    // Restore body scroll
+    document.body.style.overflow = "";
+
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      modal.style.display = "none";
+      modal.classList.remove("closing");
+      modal.setAttribute("aria-hidden", "true");
+    }, 200);
+  }
+}
+
+// Global escape handler function
+function handleEscape(event) {
+  if (event.key === "Escape") {
+    // Find the currently open modal
+    const openModal = document.querySelector(".modal[style*='block']");
+    if (openModal) {
+      closeModal(openModal.id);
+    }
   }
 }
 

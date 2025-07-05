@@ -6,10 +6,6 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "legacy": "node index-legacy.js",
-    "test": "node index.js",
-    "fix-security": "node fix-security.js",
-    "clean-install": "npm cache clean --force && npm install",
     "logs": "tail -f logs/bots/*.log",
     "health": "curl http://localhost:3000/api/health"
   },
@@ -18,9 +14,7 @@
     "bedrock-protocol": "^3.5.1",
     "dotenv": "^17.0.1",
     "express": "^4.18.2",
-    "node-cron": "^3.0.3",
-    "uuid": "^9.0.1",
-    "ws": "^8.14.2"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
@@ -46,7 +40,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "your-repo-url"
+    "url": "https://github.com/SmallFCraft/bot-aternos.git"
   },
   "overrides": {
     "axios": "^1.6.0",

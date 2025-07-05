@@ -54,12 +54,14 @@ class APIServer {
     const logsRoutes = require("./routes/logs")(this.botManager);
     const healthRoutes = require("./routes/health")(this.botManager);
     const betterStackRoutes = require("./routes/betterstack")(this.botManager);
+    const uptimeRoutes = require("./routes/uptime")(this.botManager);
 
     // API routes
     this.app.use("/api/bots", botsRoutes);
     this.app.use("/api/logs", logsRoutes);
     this.app.use("/api/health", healthRoutes);
     this.app.use("/api/betterstack", betterStackRoutes);
+    this.app.use("/api/uptime", uptimeRoutes);
 
     // Legacy compatibility routes (for existing dashboard)
     this.setupLegacyRoutes();
@@ -67,6 +69,11 @@ class APIServer {
     // Dashboard route
     this.app.get("/", (req, res) => {
       res.sendFile(path.join(__dirname, "../../public/dashboard.html"));
+    });
+
+    // Uptime status page route
+    this.app.get("/uptime", (req, res) => {
+      res.sendFile(path.join(__dirname, "../../public/uptime.html"));
     });
 
     // 404 handler
