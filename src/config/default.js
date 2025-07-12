@@ -23,18 +23,18 @@ class Config {
       interval: parseInt(process.env.BETTER_STACK_INTERVAL) || 60000, // 60 seconds
     };
 
-    // Default Server Configuration
+    // Default Server Configuration (template for new bots only)
     this.defaultServer = {
       host: process.env.SERVER_HOST || "localhost",
       port: parseInt(process.env.SERVER_PORT) || 19132,
       version: process.env.MC_VERSION || "1.21.90",
     };
 
-    // Default Bot Configuration
+    // Default Bot Configuration (template for new bots only)
     this.defaultBot = {
-      username: process.env.BOT_USERNAME || "MinecraftBot",
-      isOfflineMode: process.env.DEFAULT_OFFLINE_MODE === "true",
-      skipAuthentication: process.env.SKIP_AUTHENTICATION === "true",
+      username: process.env.BOT_USERNAME || "LOADING99",
+      isOfflineMode: process.env.DEFAULT_OFFLINE_MODE !== "false", // Default true for most servers
+      skipAuthentication: process.env.SKIP_AUTHENTICATION !== "false", // Default true for offline mode
       antiAfk: {
         enabled: process.env.DEFAULT_ANTI_AFK_ENABLED !== "false",
         interval: parseInt(process.env.DEFAULT_ANTI_AFK_INTERVAL) || 30000,

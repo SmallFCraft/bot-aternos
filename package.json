@@ -7,7 +7,12 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "logs": "tail -f logs/bots/*.log",
-    "health": "curl http://localhost:3000/api/health"
+    "health": "curl https://aternos.loading99.site/api/health",
+    "cleanup": "node scripts/cleanup.js",
+    "cleanup:logs": "node scripts/cleanup.js logs",
+    "cleanup:config": "node scripts/cleanup.js config",
+    "report": "node scripts/cleanup.js report",
+    "build": "echo 'Using pure JS implementation - no native build required'"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -46,6 +51,13 @@
     "axios": "^1.6.0",
     "tar": "^6.2.1",
     "jsonwebtoken": "^9.0.0",
-    "jose-node-cjs-runtime": "^5.0.0"
+    "jose-node-cjs-runtime": "^5.0.0",
+    "raknet-native": "npm:raknet-node@^0.5.0"
+  },
+  "config": {
+    "target_platform": "linux",
+    "target_arch": "x64",
+    "runtime": "node",
+    "build_from_source": false
   }
 }

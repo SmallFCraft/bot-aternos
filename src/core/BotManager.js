@@ -6,6 +6,7 @@ const Bot = require("./Bot");
 const Logger = require("./Logger");
 const BetterStackMonitor = require("./BetterStackMonitor");
 const config = require("../config/default");
+const CommonUtils = require("../utils/common");
 
 class BotManager {
   constructor() {
@@ -28,9 +29,7 @@ class BotManager {
   // Ensure data directory exists
   ensureDataDirectory() {
     const dataDir = path.dirname(this.dataFile);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
+    CommonUtils.ensureDirectory(dataDir);
   }
 
   // Add log broadcaster for real-time updates

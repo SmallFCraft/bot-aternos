@@ -74,10 +74,14 @@ BETTER_STACK_HEARTBEAT=https://uptime.betterstack.com/api/v1/heartbeat/YOUR_KEY
 ### Available Scripts
 
 ```bash
-npm start      # Start system
-npm run dev    # Development mode
-npm run logs   # View bot logs
-npm run health # Check system health
+npm start              # Start the multi-bot system
+npm run dev            # Start with auto-reload (development)
+npm run logs           # View live bot logs
+npm run health         # Check system health
+npm run cleanup        # Clean old logs and optimize system
+npm run cleanup:logs   # Clean only log files
+npm run cleanup:config # Clean only bot configurations
+npm run report         # Generate system report
 ```
 
 ## 📖 Usage
