@@ -80,11 +80,29 @@ class BotManager {
       // Merge with default config from .env
       const defaultConfig = config.getDefaultBotConfig();
 
+      // Validate and normalize port
+      let port = botConfig.port;
+      if (port !== undefined && port !== null) {
+        port = parseInt(port, 10);
+        if (isNaN(port) || port < 1 || port > 65535) {
+          throw new Error(`Invalid port: ${botConfig.port} must be between 1 and 65535`);
+        }
+      } else {
+        port = defaultConfig.port;
+      }
+
+      // Validate and normalize host
+      let host = botConfig.host || defaultConfig.host;
+      if (typeof host !== "string" || host.trim().length === 0) {
+        throw new Error("Invalid host: host must be a non-empty string");
+      }
+      host = host.trim();
+
       const finalBotConfig = {
         id: botId,
         name: botConfig.name || `Bot-${botId.slice(0, 8)}`,
-        host: botConfig.host || defaultConfig.host,
-        port: parseInt(botConfig.port) || defaultConfig.port,
+        host: host,
+        port: port,
         username: botConfig.username || defaultConfig.username,
         version: botConfig.version || defaultConfig.version,
         isOfflineMode:
@@ -398,19 +416,57 @@ class BotManager {
       const botsData = JSON.parse(data);
 
       for (const [botId, config] of Object.entries(botsData)) {
-        // Create logger
-        const logger = new Logger(`./logs/bots/bot-${botId}.log`);
+        try {
+          // Validate and normalize config from JSON
+          // Port might be a string from JSON, convert to integer
+          if (config.port !== undefined && config.port !== null) {
+            const port = parseInt(config.port, 10);
+            if (isNaN(port) || port < 1 || port > 65535) {
+              this.broadcastLog(
+                `⚠️ Invalid port for bot ${config.name || botId}: ${config.port}. Skipping bot.`,
+                "warn"
+              );
+              continue;
+            }
+            config.port = port;
+          } else {
+            this.broadcastLog(
+              `⚠️ Missing port for bot ${config.name || botId}. Skipping bot.`,
+              "warn"
+            );
+            continue;
+          }
 
-        // Create bot instance
-        const bot = new Bot(config, logger, (message, type) => {
-          this.broadcastLog(message, type, botId);
-        });
+          // Validate and normalize host
+          if (!config.host || typeof config.host !== "string" || config.host.trim().length === 0) {
+            this.broadcastLog(
+              `⚠️ Invalid host for bot ${config.name || botId}. Skipping bot.`,
+              "warn"
+            );
+            continue;
+          }
+          config.host = config.host.trim();
 
-        this.bots.set(botId, bot);
+          // Create logger
+          const logger = new Logger(`./logs/bots/bot-${botId}.log`);
 
-        // Auto-start if configured
-        if (config.autoStart) {
-          setTimeout(() => this.startBot(botId), 2000);
+          // Create bot instance
+          const bot = new Bot(config, logger, (message, type) => {
+            this.broadcastLog(message, type, botId);
+          });
+
+          this.bots.set(botId, bot);
+
+          // Auto-start if configured
+          if (config.autoStart) {
+            setTimeout(() => this.startBot(botId), 2000);
+          }
+        } catch (botError) {
+          this.broadcastLog(
+            `⚠️ Failed to load bot ${botId}: ${botError.message}. Skipping bot.`,
+            "warn"
+          );
+          console.error(`Error loading bot ${botId}:`, botError);
         }
       }
 
@@ -420,6 +476,10 @@ class BotManager {
       );
     } catch (error) {
       console.error("Failed to load bots from storage:", error);
+      this.broadcastLog(
+        `❌ Failed to load bots from storage: ${error.message}`,
+        "error"
+      );
     }
   }
 

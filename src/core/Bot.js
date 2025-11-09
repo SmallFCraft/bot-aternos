@@ -195,6 +195,52 @@ class Bot {
     this.log("💀 Bot force killed", "warn");
   }
 
+  // Validate host and port
+  validateHostAndPort() {
+    // Validate host
+    if (!this.config.host || typeof this.config.host !== "string") {
+      throw new Error("Invalid host: host must be a non-empty string");
+    }
+
+    // Trim whitespace from host
+    const host = this.config.host.trim();
+    if (host.length === 0) {
+      throw new Error("Invalid host: host cannot be empty");
+    }
+
+    // Validate host format (basic validation)
+    // Allow hostnames (with dots, hyphens) and IP addresses
+    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?)*$/;
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    
+    if (!hostnameRegex.test(host) && !ipRegex.test(host)) {
+      throw new Error(`Invalid host format: ${host}`);
+    }
+
+    // Validate port
+    let port = this.config.port;
+    
+    // Convert port to integer if it's a string
+    if (typeof port === "string") {
+      port = parseInt(port, 10);
+      if (isNaN(port)) {
+        throw new Error(`Invalid port: ${this.config.port} is not a valid number`);
+      }
+    }
+
+    // Ensure port is a number
+    if (typeof port !== "number" || isNaN(port)) {
+      throw new Error(`Invalid port: port must be a valid number`);
+    }
+
+    // Validate port range
+    if (port < 1 || port > 65535) {
+      throw new Error(`Invalid port: ${port} must be between 1 and 65535`);
+    }
+
+    return { host, port };
+  }
+
   // Create bot connection
   createBotConnection() {
     try {
@@ -207,8 +253,25 @@ class Bot {
         return;
       }
 
+      // Validate host and port before attempting connection
+      let validatedHost, validatedPort;
+      try {
+        const validated = this.validateHostAndPort();
+        validatedHost = validated.host;
+        validatedPort = validated.port;
+      } catch (validationError) {
+        this.log(`❌ Configuration validation failed: ${validationError.message}`, "error");
+        this.status.isConnecting = false;
+        this.handleDisconnect(`Validation error: ${validationError.message}`);
+        return;
+      }
+
+      // Update config with validated values
+      this.config.host = validatedHost;
+      this.config.port = validatedPort;
+
       this.log(
-        `🔗 Connecting to ${this.config.host}:${this.config.port}...`,
+        `🔗 Connecting to ${validatedHost}:${validatedPort}...`,
         "info"
       );
 
@@ -224,24 +287,50 @@ class Bot {
       // Reset connection status but keep connecting state
       this.resetConnectionStatus(false);
 
-      // Create client options
+      // Create client options with validated values
+      // Note: connectTimeout should match the connection timeout handler below
       const clientOptions = {
-        host: this.config.host,
-        port: this.config.port,
+        host: validatedHost,
+        port: validatedPort,
         username: this.config.username,
         version: this.config.version,
         offline: this.config.isOfflineMode,
         skipAuthentication: this.config.skipAuthentication,
-        connectTimeout: 30000,
+        connectTimeout: 45000, // Increased timeout to match connection timeout handler
         keepAlive: true,
         conLog: () => {}, // Disable internal logging
       };
 
-      this.client = bedrock.createClient(clientOptions);
-      this.setupEventHandlers();
+      // Wrap createClient in try-catch to handle native module errors
+      try {
+        this.client = bedrock.createClient(clientOptions);
+        this.setupEventHandlers();
+      } catch (createError) {
+        // Handle errors from native module (Rust code)
+        let errorMsg = createError.message || createError.toString();
+        
+        // Check for address parsing errors from Rust
+        if (errorMsg.includes("AddrParseError") || 
+            errorMsg.includes("Socket") ||
+            errorMsg.includes("panicked") ||
+            errorMsg.includes("unwrap")) {
+          errorMsg = `Invalid server address format: ${validatedHost}:${validatedPort}. Please verify the host and port are correct.`;
+        }
+        
+        throw new Error(errorMsg);
+      }
     } catch (error) {
-      this.log(`❌ Failed to create Bedrock client: ${error.message}`, "error");
-      this.handleDisconnect(`Create error: ${error.message}`);
+      // Handle specific address parsing errors
+      let errorMessage = error.message;
+      if (error.message && error.message.includes("AddrParseError")) {
+        errorMessage = `Invalid server address format: ${this.config.host}:${this.config.port}. Please check host and port configuration.`;
+      } else if (error.message && error.message.includes("Socket")) {
+        errorMessage = `Socket error: Invalid address format for ${this.config.host}:${this.config.port}`;
+      }
+
+      this.log(`❌ Failed to create Bedrock client: ${errorMessage}`, "error");
+      this.status.isConnecting = false;
+      this.handleDisconnect(`Create error: ${errorMessage}`);
     }
   }
 
@@ -359,6 +448,19 @@ class Bot {
         else if (err.code === "ETIMEDOUT") errorMessage = "Connection timeout";
         else if (err.code === "ENOTFOUND")
           errorMessage = "Server address not found";
+        else if (err.message && err.message.includes("AddrParseError"))
+          errorMessage = `Invalid server address format: ${this.config.host}:${this.config.port}`;
+        else if (err.message && err.message.includes("Ping timed out"))
+          errorMessage = "Ping timeout - server may be unreachable or slow";
+        else if (err.message && err.message.includes("Socket"))
+          errorMessage = `Socket error: ${err.message}`;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+        // Check for common error patterns in string format
+        if (err.includes("AddrParseError") || err.includes("Socket"))
+          errorMessage = `Address parsing error: Invalid format for ${this.config.host}:${this.config.port}`;
+        if (err.includes("Ping timed out"))
+          errorMessage = "Ping timeout - server may be unreachable or slow";
       }
 
       this.log(`❌ Connection error: ${errorMessage}`, "error");
@@ -371,11 +473,11 @@ class Bot {
       this.status.packetsReceived++;
     });
 
-    // Connection timeout
+    // Connection timeout - increased to 45s to account for slow servers
     connectionTimeout = setTimeout(() => {
-      this.log("⏰ Connection timeout (30s)", "error");
+      this.log("⏰ Connection timeout (45s)", "error");
       this.handleDisconnect("Connection timeout");
-    }, 30000);
+    }, 45000);
   }
 
   // Reset connection status
